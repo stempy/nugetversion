@@ -9,6 +9,7 @@
     <Description>Query Multiple Projects by Specific Nuget name and Version, also update versions across multiple projects</Description>
     <PackageProjectUrl>https://github.com/stempy/nugetversion</PackageProjectUrl>
     <RepositoryUrl>https://github.com/stempy/nugetversion</RepositoryUrl>
+    <PackageOutputPath>build</PackageOutputPath>
   </PropertyGroup>
 
   <ItemGroup>

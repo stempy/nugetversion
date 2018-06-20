@@ -28,7 +28,7 @@ namespace nugetversion
                 var tools = new ProjectNugetVersionTools();
                 var pkgs=tools.QueryProjectFilesByBasePath(basePath,nameFilter,versionFilter);
                 var renderer = new PackageReferenceConsoleTableRenderer();
-                renderer.RenderProjectResults(20,pkgs);
+                renderer.RenderProjectResults(10,pkgs);
             });
 
 
