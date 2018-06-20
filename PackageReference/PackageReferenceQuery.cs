@@ -38,6 +38,26 @@ namespace nugetversion
             return newList;
         }
 
+        private static IEnumerable<XElement> FilterByChildElement(IEnumerable<XElement> pr, string elementName, string elVal)
+        {
+            if (!string.IsNullOrEmpty(elVal))
+            {
+                if (elVal.Contains("*") || elVal.Contains("?"))
+                {
+                    // wildcard name
+                    var regexPattern = WildCardToRegular(elVal);
+                    var r = new Regex(regexPattern, RegexOptions.IgnoreCase);
+                    pr = pr.Where(u => r.IsMatch(u.Element(elementName) != null ? u.Element(elementName).Value : ""));
+                }
+                else
+                {
+                    // specific name
+                    pr = pr.Where(u => u.Element(elementName) != null && u.Element(elementName).Value.Contains(elVal));
+                }
+            }
+            return pr;
+        }
+
         /// <summary>
         /// filter package references by name
         /// </summary>
@@ -54,9 +74,20 @@ namespace nugetversion
 
             if (!string.IsNullOrEmpty(versionSpec))
             {
-                l = FilterByAttribute(l, PackageConstants.PackageVersionAttr, versionSpec);
+                l = FilterVersion(l,versionSpec);
             }
             return l;
+        }
+
+        public IEnumerable<XElement> FilterVersion(IEnumerable<XElement> pr, string version)
+        {
+            if (!string.IsNullOrEmpty(version))
+            {
+                pr = FilterByAttribute(pr, PackageConstants.PackageVersionAttr, version);
+                // TODO: this may wipe out before one
+                //pr = FilterByChildElement(pr,PackageConstants.PackageVersionAttr,version);
+            }
+            return pr;
         }
 
         public IEnumerable<XElement> QueryP(XDocument doc, string nameFilter, string versionFilter)
