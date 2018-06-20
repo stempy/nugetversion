@@ -35,10 +35,13 @@ namespace nugetversion
 
         public void RenderProjectResults(int startTabIdx, PackageReferenceDic dic)
         {
-            var maxNamePad = this.GetMaxNumPad(dic);
-            foreach(var d in dic)
+            if (dic.Any())
             {
-                RenderProjectResults(startTabIdx,maxNamePad,d.Key,d.Value);
+                var maxNamePad = this.GetMaxNumPad(dic);
+                foreach (var d in dic)
+                {
+                    RenderProjectResults(startTabIdx, maxNamePad, d.Key, d.Value);
+                }
             }
         }
 

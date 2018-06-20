@@ -43,7 +43,7 @@ namespace nugetversion
             File.WriteAllText(newPath, doc.ToString());
         }
 
-        public IEnumerable<VersionUpdateResult> UpdateVersionInProject(string projectFile, string nameFilter, string versionFilter, string newVersion)
+        public IEnumerable<VersionUpdateResult> UpdateVersionInProject(string projectFile, string nameFilter, string versionFilter, string newVersion, bool suppressPrompt=false)
         {
             var doc = XDocument.Parse(File.ReadAllText(projectFile));
             var items = QueryProject(doc, nameFilter, versionFilter);
@@ -57,12 +57,15 @@ namespace nugetversion
             // ok lets provide confirmation
             renderer.RenderProjectResults(0, renderer.GetMaxNumPad(pr), projectFile, pr);
 
-            ConsoleRender.W($"Are you sure you want to change versions for {pr.Count()} packages to ")
-                         .W($"{newVersion}", ConsoleColor.DarkMagenta).W(" ? Y/N: ");
+            if (!suppressPrompt)
+            {
+                ConsoleRender.W($"Are you sure you want to change versions for {pr.Count()} packages to ")
+                    .W($"{newVersion}", ConsoleColor.DarkMagenta).W(" ? Y/N: ");
 
-            var inp = Console.ReadLine();
-            if (!inp.Equals("Y", StringComparison.InvariantCultureIgnoreCase))
-                return null;
+                var inp = Console.ReadLine();
+                if (!inp.Equals("Y", StringComparison.InvariantCultureIgnoreCase))
+                    return null;
+            }
 
             var simpleExec = new SimpleExec();
 
@@ -70,12 +73,13 @@ namespace nugetversion
             {
                 // use dotnet to upgrade package, takes care of dependencies than
                 var args = $"add \"{projectFile}\" package \"{i.Name}\" -v \"{newVersion}\"";
-                var result=simpleExec.Exec("dotnet",args, out var exitCode);
+                var resultint=simpleExec.Exec("dotnet",args);
+                
                 versionUpdResults.Add(new VersionUpdateResult(){
                     Name = i.Name,
                     OriginalVersion = i.Version,
                     NewVersion = newVersion,
-                    Message = $"ExitCode:{exitCode} - "+ result
+                    Message = $"ExitCode:{resultint}"
                 });
             }
 
@@ -83,12 +87,12 @@ namespace nugetversion
             return versionUpdResults;
         }
 
-        public IDictionary<string, IEnumerable<VersionUpdateResult>> UpdateVersionInProjects(IEnumerable<string> projectFiles, string nameFilter, string versionFilter, string newVersion)
+        public IDictionary<string, IEnumerable<VersionUpdateResult>> UpdateVersionInProjects(IEnumerable<string> projectFiles, string nameFilter, string versionFilter, string newVersion, bool suppressPrompts=false)
         {
             var d =new Dictionary<string,IEnumerable<VersionUpdateResult>>();
             foreach (var f in projectFiles)
             {
-                var results=UpdateVersionInProject(f, nameFilter, versionFilter, newVersion);
+                var results=UpdateVersionInProject(f, nameFilter, versionFilter, newVersion,suppressPrompts);
                 d.Add(f,results);
             }
             return d;
