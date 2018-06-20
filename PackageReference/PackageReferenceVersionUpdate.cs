@@ -5,6 +5,7 @@ using System.Xml.Linq;
 
 namespace nugetversion
 {
+    
     // update xdocument package reference versions
     public class PackageReferenceVersionUpdate
     {
@@ -46,7 +47,7 @@ namespace nugetversion
 
                 updateResulsList.Add(new VersionUpdateResult()
                 {
-                    Element = name,
+                    Name = name,
                     OriginalVersion = originalValue,
                     NewVersion = newVersion
                 });
