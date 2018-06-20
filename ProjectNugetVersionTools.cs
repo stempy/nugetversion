@@ -26,8 +26,8 @@ namespace nugetversion
             return items.Select(x => new PackageReference()
             {
                 Name = x.GetXElementAttributeValueOrNull(PackageConstants.PackageNameAttr),
-                Version = x.GetXElementAttributeValueOrNull(PackageConstants.PackageVersionAttr)
-            }); ;
+                Version = x.GetXElementAttributeValueOrNull(PackageConstants.PackageVersionAttr) ?? x.Element("Version")?.Value
+            }); 
         }
 
         private void SaveUpdate(XDocument doc, string file, IEnumerable<VersionUpdateResult> results)
