@@ -12,18 +12,19 @@ namespace nugetversion
             var app = new CommandLineApplication();
             app.HelpOption();
             var basePath = args.Length>0? args[0]:null;
-
-            if (string.IsNullOrEmpty(basePath)){
-                throw new Exception("no base path");
-            }
             var optShift = args.ToList();
-            optShift.RemoveAt(0);
+            
+            if (args.Any()) optShift.RemoveAt(0);
 
             var optionName = app.Option("-n|--name <NAME>","Package Name filter",CommandOptionType.SingleValue);
             var optionVersionFilter = app.Option("-v|--version <VERSION>","Version filter",CommandOptionType.SingleValue);
             var optionSetVersion = app.Option("-sv|--set-version <VERSION>","Update versions of query to new version",CommandOptionType.SingleValue);
             app.OnExecute(()=>{
-                
+                if (string.IsNullOrEmpty(basePath)){
+                    app.ShowHelp();
+                    return;
+                }
+
                 var nameFilter = optionName.HasValue()? optionName.Value():null;
                 var versionFilter = optionVersionFilter.Value();
                 Execute(basePath,nameFilter,versionFilter,optionSetVersion.HasValue()?optionSetVersion.Value():null);
