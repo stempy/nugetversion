@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using McMaster.Extensions.CommandLineUtils;
 
@@ -11,27 +12,31 @@ namespace nugetversion
         {
             var app = new CommandLineApplication();
             app.HelpOption();
-            var basePath = args.Length>0? args[0]:null;
-            var optShift = args.ToList();
-            
-            if (args.Any()) optShift.RemoveAt(0);
 
+            var basePathOption = app.Option("-b|--base <PATH>", "Base Path", CommandOptionType.SingleValue);
             var optionName = app.Option("-n|--name <NAME>","Package Name filter",CommandOptionType.SingleValue);
             var optionVersionFilter = app.Option("-v|--version <VERSION>","Version filter",CommandOptionType.SingleValue);
             var optionSetVersion = app.Option("-sv|--set-version <VERSION>","Update versions of query to new version",CommandOptionType.SingleValue);
-            app.OnExecute(()=>{
-                if (string.IsNullOrEmpty(basePath)){
-                    app.ShowHelp();
-                    return;
-                }
 
+            var basePath = ".";
+            var optShift = args.ToList();
+            //app.ThrowOnUnexpectedArgument = false;
+
+            app.OnExecute(()=>{
+                var basePathValue = basePathOption.HasValue() ? basePathOption.Value() : null;
                 var nameFilter = optionName.HasValue()? optionName.Value():null;
-                var versionFilter = optionVersionFilter.Value();
-                Execute(basePath,nameFilter,versionFilter,optionSetVersion.HasValue()?optionSetVersion.Value():null);
+                var versionFilter = optionVersionFilter.HasValue()? optionVersionFilter.Value():null;
+                var setVersion = optionSetVersion.HasValue() ? optionSetVersion.Value() : null;
+
+                var remaining = app.RemainingArguments;
+
+                if (!string.IsNullOrEmpty(basePathValue))
+                    basePath = basePathValue;
+
+                Execute(basePath,nameFilter,versionFilter,setVersion);
             });
 
             app.Execute(optShift.ToArray());
-
 
             Console.WriteLine("Complete!");
 
@@ -45,6 +50,7 @@ namespace nugetversion
         {
                 var tools = new ProjectNugetVersionTools();
                 var renderer  = new PackageReferenceConsoleTableRenderer();
+                basePath = Path.GetFullPath(basePath);
                 var pkgs=tools.QueryProjectFilesByBasePath(basePath,nameFilter,versionFilter);
                 
                 var startTabPad =10;
