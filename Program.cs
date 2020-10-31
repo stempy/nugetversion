@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using McMaster.Extensions.CommandLineUtils;
+using nugetversion.PackageReference;
 
 namespace nugetversion
 {
@@ -19,8 +20,21 @@ namespace nugetversion
             var optionSetVersion = app.Option("-sv|--set-version <VERSION>","Update versions of query to new version",CommandOptionType.SingleValue);
 
             var basePath = ".";
+
+            if (args.Any(x => !x.StartsWith("-")))
+            {
+                basePath = args.FirstOrDefault(x => !x.StartsWith("-"));
+                args = args.Where(x => !x.StartsWith(basePath)).ToArray();
+            }
+
+            
             var optShift = args.ToList();
-            //app.ThrowOnUnexpectedArgument = false;
+            
+
+            
+
+
+            app.ThrowOnUnexpectedArgument = false;
 
             app.OnExecute(()=>{
                 var basePathValue = basePathOption.HasValue() ? basePathOption.Value() : null;
@@ -31,8 +45,14 @@ namespace nugetversion
                 var remaining = app.RemainingArguments;
 
                 if (!string.IsNullOrEmpty(basePathValue))
+                {
+                    if (basePath!= "." )
+                    {
+                        throw new ArgumentException($"Path and basePath Specified: {basePath} -b {basePathValue}");
+                    }
+                    
                     basePath = basePathValue;
-
+                }
                 Execute(basePath,nameFilter,versionFilter,setVersion);
             });
 
@@ -58,7 +78,6 @@ namespace nugetversion
                 if (!string.IsNullOrEmpty(setVersion))
                 {
                     renderer.RenderProjectResults(startTabPad,pkgs);
-                    bool suppressPrompts = false;
 
                     var numProjectFiles = pkgs.Count();
                     if (numProjectFiles < 1)

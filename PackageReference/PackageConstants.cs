@@ -1,4 +1,4 @@
-namespace nugetversion
+namespace nugetversion.PackageReference
 {
     internal static class PackageConstants
     {

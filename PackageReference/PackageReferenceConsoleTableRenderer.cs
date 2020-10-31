@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
-namespace nugetversion
+namespace nugetversion.PackageReference
 {
     public class PackageReferenceConsoleTableRenderer
     {
@@ -50,9 +51,9 @@ namespace nugetversion
                                         string projectFile,
                                         IEnumerable<PackageReference> items)
         {
-            int tabIdx = 0;
-            ConsoleRender.W($"{projectFile}\n");
-            tabIdx = startTabIdx;
+            var fileName = Path.GetFileName(projectFile);
+            ConsoleRender.W($"{fileName}\n");
+            var tabIdx = startTabIdx;
             var tabStr = new string(' ', tabIdx);
             foreach (var pr in items)
             {
