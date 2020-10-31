@@ -1,6 +1,6 @@
 using System.Xml.Linq;
 
-namespace nugetversion
+namespace nugetversion.Extensions
 {
     public static class XmlXElementExtensions
 	{

@@ -1,6 +1,4 @@
-using System;
 using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace nugetversion
@@ -8,32 +6,6 @@ namespace nugetversion
     // parse filenames for nuget data
     public class PackageGitVersionParser
     {
-        public class ParsedNugetResult
-        {
-            public string Name { get; set; }
-            public string NugetVersion { get; set; }
-            public string FullPath { get; set; }
-
-            public bool IsPrerelease
-            {
-                get
-                {
-                    return NugetVersion != null && NugetVersion.Contains("-");
-                }
-            }
-
-            public string GitFlowBranch()
-            {
-                if (!IsPrerelease)
-                    return "master";
-
-                if (NugetVersion.Contains("unstable"))
-                    return "develop";
-
-                return null;
-            }
-        }
-
         public ParsedNugetResult ParseFilename(string file)
         {
             var fileOnly = Path.GetFileNameWithoutExtension(file);

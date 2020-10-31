@@ -3,29 +3,29 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
+using nugetversion.Extensions;
+using nugetversion.PackageReference;
 
 namespace nugetversion
 {
-
-
     // query across projects
     public class ProjectNugetVersionTools
     {
-        private PackageReferenceQuery query;
-        private PackageReferenceVersionUpdate updater;
-        private PackageReferenceConsoleTableRenderer renderer;
+        private readonly PackageReferenceQuery _query;
+        private readonly PackageReferenceVersionUpdate _updater;
+        private readonly PackageReferenceConsoleTableRenderer _renderer;
         public bool IncludeEmptyResults { get; set; }
 
         public ProjectNugetVersionTools()
         {
-            query = new PackageReferenceQuery();
-            updater = new PackageReferenceVersionUpdate();
-            renderer = new PackageReferenceConsoleTableRenderer();
+            _query = new PackageReferenceQuery();
+            _updater = new PackageReferenceVersionUpdate();
+            _renderer = new PackageReferenceConsoleTableRenderer();
         }
 
-        private IEnumerable<PackageReference> Map(IEnumerable<XElement> items)
+        private IEnumerable<PackageReference.PackageReference> Map(IEnumerable<XElement> items)
         {
-            return items.Select(x => new PackageReference()
+            return items.Select(x => new PackageReference.PackageReference()
             {
                 Name = x.GetXElementAttributeValueOrNull(PackageConstants.PackageNameAttr),
                 Version = x.GetXElementAttributeValueOrNull(PackageConstants.PackageVersionAttr) ?? x.Element("Version")?.Value
@@ -55,7 +55,7 @@ namespace nugetversion
             var versionUpdResults = new List<VersionUpdateResult>();
 
             // ok lets provide confirmation
-            renderer.RenderProjectResults(0, renderer.GetMaxNumPad(pr), projectFile, pr);
+            _renderer.RenderProjectResults(0, _renderer.GetMaxNumPad(pr), projectFile, pr);
 
             if (!suppressPrompt)
             {
@@ -73,13 +73,13 @@ namespace nugetversion
             {
                 // use dotnet to upgrade package, takes care of dependencies than
                 var args = $"add \"{projectFile}\" package \"{i.Name}\" -v \"{newVersion}\"";
-                var resultint=simpleExec.Exec("dotnet",args);
+                var resulting=simpleExec.Exec("dotnet",args);
                 
                 versionUpdResults.Add(new VersionUpdateResult(){
                     Name = i.Name,
                     OriginalVersion = i.Version,
                     NewVersion = newVersion,
-                    Message = $"ExitCode:{resultint}"
+                    Message = $"ExitCode:{resulting}"
                 });
             }
 
@@ -105,14 +105,11 @@ namespace nugetversion
             {
                 var doc = XDocument.Parse(File.ReadAllText(f));
                 var fndResults = QueryProject(doc, nameFilter, versionFilter);
-                //Console.Read();
-                var result = updater.SetPackageVersion(fndResults, newVersion, out var updResults, true);
+                var result = _updater.SetPackageVersion(fndResults, newVersion, out var updResults, true);
                 d.Add(f, updResults);
 
                 if (updResults.Any())
                 {
-                    // update actual file
-                    // TODO: UPDATE FILE ITSELF
                     SaveUpdate(doc, f, updResults);
                 }
             }
@@ -121,10 +118,10 @@ namespace nugetversion
 
         public IEnumerable<XElement> QueryProject(XDocument doc, string nameFilter, string versionFilter)
         {
-            return query.QueryP(doc, nameFilter, versionFilter);
+            return _query.QueryP(doc, nameFilter, versionFilter);
         }
 
-        public IEnumerable<PackageReference> QueryProjectFile(string file, string nameFilter, string versionFilter)
+        public IEnumerable<PackageReference.PackageReference> QueryProjectFile(string file, string nameFilter, string versionFilter)
         {
             var doc = XDocument.Parse(File.ReadAllText(file));
             return Map(QueryProject(doc, nameFilter, versionFilter));
@@ -148,6 +145,7 @@ namespace nugetversion
 
         public PackageReferenceDic QueryProjectFilesByBasePath(string basePath, string nameFilter, string versionFilter)
         {
+            Console.WriteLine($"Querying Projects in {basePath}");
             var files = Directory.GetFiles(basePath, "*.csproj", SearchOption.AllDirectories);
             return QueryProjectFiles(files, nameFilter, versionFilter);
         }

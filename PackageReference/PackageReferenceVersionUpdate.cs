@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace nugetversion
+namespace nugetversion.PackageReference
 {
     
     // update xdocument package reference versions
