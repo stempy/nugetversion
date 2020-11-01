@@ -22,18 +22,6 @@ jobs:
     - name: Install dependencies
       run: dotnet restore
 
-    - name: GitHub Action to Setup GitVersion
-      # You may pin to the exact commit or the version.
-      # uses: StanleyGoldman/setup-gitversion@a374f5e1b8c33fb6efd03c402cb511f02eafa245
-      uses: StanleyGoldman/setup-gitversion@v1.0.1
-      with:
-        # Version range or exact version of GitVersion to use
-        gitversion-version: 5.2.4
-        # Whether to run GitVersion
-        run-gitversion: true # optional, default is false
-        # Args to run with GitVersion
-        run-gitversion-args: /output buildserver
-
     - name: Install GitVersion
       uses: gittools/actions/gitversion/setup@v0.9.4
       with:
