@@ -32,9 +32,18 @@ jobs:
         # Whether to run GitVersion
         run-gitversion: true # optional, default is false
         # Args to run with GitVersion
-        run-gitversion-args: /output buildserver# optional
+        run-gitversion-args: /output buildserver
 
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v0.9.4
+      with:
+        versionSpec: '5.3.x'
+    - name: Use GitVersion
+      id: gitversion # step id used as reference for output values
+      uses: gittools/actions/gitversion/execute@v0.9.4
+      run: |
+        echo "FullSemVer: ${{ steps.gitversion.outputs.fullSemVer }}"
    
     - name: Build
-      run: dotnet build --configuration Release --no-restore -p:Version=${{ steps.gitversion.outputs.NuGetVersion }}
+      run: dotnet build --configuration Release --no-restore -p:Version=${{ steps.gitversion.outputs.fullSemVer }}
     
