@@ -41,7 +41,7 @@ jobs:
     - name: Use GitVersion
       id: gitversion # step id used as reference for output values
       uses: gittools/actions/gitversion/execute@v0.9.4
-      run: |
+    - run: |
         echo "FullSemVer: ${{ steps.gitversion.outputs.fullSemVer }}"
    
     - name: Build
