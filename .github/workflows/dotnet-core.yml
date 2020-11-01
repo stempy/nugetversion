@@ -21,15 +21,20 @@ jobs:
         dotnet-version: 3.1.301
     - name: Install dependencies
       run: dotnet restore
-    - name: Run GitVersion
-        # You may pin to the exact commit or the version.
-        # uses: roryprimrose/rungitversion@80f02b02c55975abac3836750542fe3d596c2cf4
-      uses: roryprimrose/rungitversion@v1.0.0
+
+    - name: GitHub Action to Setup GitVersion
+      # You may pin to the exact commit or the version.
+      # uses: StanleyGoldman/setup-gitversion@a374f5e1b8c33fb6efd03c402cb511f02eafa245
+      uses: StanleyGoldman/setup-gitversion@v1.0.1
       with:
-        # "true" to use GitVersion /nofetch, any other value to enable fetch
-        nofetch: false # default is false
-        # "true" to use GitVersion /nocache, any other value to enable cache
-        nocache: false # default is false
+        # Version range or exact version of GitVersion to use
+        gitversion-version: 5.5.0
+        # Whether to run GitVersion
+        run-gitversion: true # optional, default is false
+        # Args to run with GitVersion
+        run-gitversion-args: /output buildserver# optional
+
+   
     - name: Build
       run: dotnet build --configuration Release --no-restore -p:Version=${{ steps.gitversion.outputs.NuGetVersion }}
     
