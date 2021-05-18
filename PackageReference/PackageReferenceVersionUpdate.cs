@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace nugetversion.PackageReference
+namespace NugetVersion.PackageReference
 {
-    
     // update xdocument package reference versions
     public class PackageReferenceVersionUpdate
     {
@@ -24,7 +23,7 @@ namespace nugetversion.PackageReference
         public IEnumerable<XElement> SetPackageVersion(IEnumerable<XElement> pr, string newVersion, out IEnumerable<VersionUpdateResult> updateResults, bool ignoreNullVersions)
         {
             pr = pr.ToList();
-            var updateResulsList = new List<VersionUpdateResult>();
+            var updateResultsList = new List<VersionUpdateResult>();
 
             foreach (var e in pr)
             {
@@ -45,7 +44,7 @@ namespace nugetversion.PackageReference
                 var originalValue = attr.Value;
                 attr.Value = newVersion;
 
-                updateResulsList.Add(new VersionUpdateResult()
+                updateResultsList.Add(new VersionUpdateResult()
                 {
                     Name = name,
                     OriginalVersion = originalValue,
@@ -54,7 +53,7 @@ namespace nugetversion.PackageReference
                 Log($"{name} version {originalValue} ==> {newVersion}");
             }
 
-            updateResults = updateResulsList;
+            updateResults = updateResultsList;
             return pr;
         }
     }

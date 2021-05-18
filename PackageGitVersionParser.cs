@@ -1,7 +1,8 @@
 using System.IO;
 using System.Text.RegularExpressions;
+using NugetVersion.Models;
 
-namespace nugetversion
+namespace NugetVersion
 {
     // parse filenames for nuget data
     public class PackageGitVersionParser

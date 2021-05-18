@@ -3,33 +3,24 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
-using nugetversion.Extensions;
-using nugetversion.PackageReference;
+using NugetVersion.Extensions;
+using NugetVersion.PackageReference;
 
-namespace nugetversion
+namespace NugetVersion
 {
     // query across projects
-    public class ProjectNugetVersionTools
+    public class ProjectNugetVersionUpdater
     {
-        private readonly PackageReferenceQuery _query;
         private readonly PackageReferenceVersionUpdate _updater;
         private readonly PackageReferenceConsoleTableRenderer _renderer;
+        private readonly PackageReferenceXElementMapper _mapper;
         public bool IncludeEmptyResults { get; set; }
 
-        public ProjectNugetVersionTools()
+        public ProjectNugetVersionUpdater()
         {
-            _query = new PackageReferenceQuery();
             _updater = new PackageReferenceVersionUpdate();
             _renderer = new PackageReferenceConsoleTableRenderer();
-        }
-
-        private IEnumerable<PackageReference.PackageReference> Map(IEnumerable<XElement> items)
-        {
-            return items.Select(x => new PackageReference.PackageReference()
-            {
-                Name = x.GetXElementAttributeValueOrNull(PackageConstants.PackageNameAttr),
-                Version = x.GetXElementAttributeValueOrNull(PackageConstants.PackageVersionAttr) ?? x.Element("Version")?.Value
-            });
+            _mapper = new PackageReferenceXElementMapper();
         }
 
         private void SaveUpdate(XDocument doc, string file, IEnumerable<VersionUpdateResult> results)
@@ -43,6 +34,11 @@ namespace nugetversion
             File.WriteAllText(newPath, doc.ToString());
         }
 
+        private IEnumerable<XElement> QueryProject(XDocument doc, string nameFilter, string versionFilter)
+        {
+            return new PackageReferenceQuery(doc).QueryPackages(nameFilter, versionFilter);
+        }
+
         public IEnumerable<VersionUpdateResult> UpdateVersionInProject(string projectFile, string nameFilter, string versionFilter, string newVersion, bool suppressPrompt=false)
         {
             var doc = XDocument.Parse(File.ReadAllText(projectFile));
@@ -50,7 +46,7 @@ namespace nugetversion
             if (!items.Any())
                 return null;
 
-            var pr = Map(items);
+            var pr = _mapper.Map(items);
 
             var versionUpdResults = new List<VersionUpdateResult>();
 
@@ -114,40 +110,6 @@ namespace nugetversion
                 }
             }
             return d;
-        }
-
-        public IEnumerable<XElement> QueryProject(XDocument doc, string nameFilter, string versionFilter)
-        {
-            return _query.QueryP(doc, nameFilter, versionFilter);
-        }
-
-        public IEnumerable<PackageReference.PackageReference> QueryProjectFile(string file, string nameFilter, string versionFilter)
-        {
-            var doc = XDocument.Parse(File.ReadAllText(file));
-            return Map(QueryProject(doc, nameFilter, versionFilter));
-        }
-
-        public PackageReferenceDic QueryProjectFiles(IEnumerable<string> csProjFiles, string nameFilter, string versionFilter)
-        {
-            var d = new PackageReferenceDic();
-            foreach (var f in csProjFiles)
-            {
-                var results = QueryProjectFile(f, nameFilter, versionFilter);
-                if (results == null || !results.Any())
-                {
-                    if (!IncludeEmptyResults)
-                        continue;
-                }
-                d.Add(f, results);
-            }
-            return d;
-        }
-
-        public PackageReferenceDic QueryProjectFilesByBasePath(string basePath, string nameFilter, string versionFilter)
-        {
-            Console.WriteLine($"Querying Projects in {basePath}");
-            var files = Directory.GetFiles(basePath, "*.csproj", SearchOption.AllDirectories);
-            return QueryProjectFiles(files, nameFilter, versionFilter);
         }
     }
 }

@@ -3,9 +3,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using McMaster.Extensions.CommandLineUtils;
-using nugetversion.PackageReference;
+using NugetVersion.PackageReference;
 
-namespace nugetversion
+namespace NugetVersion
 {
     class Program
     {
@@ -26,14 +26,9 @@ namespace nugetversion
                 basePath = args.FirstOrDefault(x => !x.StartsWith("-"));
                 args = args.Where(x => !x.StartsWith(basePath)).ToArray();
             }
-
             
             var optShift = args.ToList();
             
-
-            
-
-
             app.ThrowOnUnexpectedArgument = false;
 
             app.OnExecute(()=>{
@@ -68,10 +63,13 @@ namespace nugetversion
 
         static void Execute(string basePath, string nameFilter, string versionFilter, string setVersion)
         {
-                var tools = new ProjectNugetVersionTools();
-                var renderer  = new PackageReferenceConsoleTableRenderer();
-                basePath = Path.GetFullPath(basePath);
-                var pkgs=tools.QueryProjectFilesByBasePath(basePath,nameFilter,versionFilter);
+                var projectQuery = new ProjectPackageReferenceQuery();
+                var tools = new ProjectNugetVersionUpdater();
+                var renderer = new PackageReferenceConsoleTableRenderer();
+
+
+            basePath = Path.GetFullPath(basePath);
+                var pkgs= projectQuery.QueryProjectFilesByBasePath(basePath,nameFilter,versionFilter);
                 
                 var startTabPad =10;
                 var strPad = new string(' ',startTabPad);

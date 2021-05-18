@@ -3,30 +3,30 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace nugetversion.PackageReference
+namespace NugetVersion.PackageReference
 {
     public class PackageReferenceConsoleTableRenderer
     {
-        const int startTabIdx = 30;
+        const int StartTabIdx = 30;
         
         public void RenderTable(PackageReferenceDic dic)
         {
             var maxNamePad = GetMaxNumPad(dic);
             foreach (var d in dic)
             {
-                RenderProjectResults(startTabIdx, maxNamePad, d.Key,d.Value);
+                RenderProjectResults(StartTabIdx, maxNamePad, d.Key,d.Value);
             }
         }
 
         public int GetMaxNumPad(PackageReferenceDic dic)
         {
-            var maxNameWidth = dic.SelectMany(y => y.Value.Select(u => u.Name.Length))
+            var maxNameWidth = dic.SelectMany(y => y.Value?.Select(u => u.Name.Length))
                                   .OrderByDescending(x => x).First();
             var maxNamePad = maxNameWidth + 10;
             return maxNamePad;
         }
 
-        public int GetMaxNumPad(IEnumerable<PackageReference> items)
+        public int GetMaxNumPad(IEnumerable<PackageReferenceModel> items)
         {
             var maxNameWidth = items.Select(u => u.Name.Length)
                                   .OrderByDescending(x => x).First();
@@ -49,7 +49,7 @@ namespace nugetversion.PackageReference
         public void RenderProjectResults(int startTabIdx,
                                         int maxNamePad,
                                         string projectFile,
-                                        IEnumerable<PackageReference> items)
+                                        IEnumerable<PackageReferenceModel> items)
         {
             var fileName = Path.GetFileName(projectFile);
             ConsoleRender.W($"{fileName}\n");

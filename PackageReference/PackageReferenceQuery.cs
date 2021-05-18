@@ -1,13 +1,81 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
-namespace nugetversion.PackageReference
+namespace NugetVersion.PackageReference
 {
     // query XDocument Package references
     internal class PackageReferenceQuery
     {
+        private readonly string _filename;
+        private XDocument _xdoc;
+
+        public PackageReferenceQuery(string filename)
+        {
+            _filename = filename;
+        }
+
+        public PackageReferenceQuery(XDocument xdoc)
+        {
+            _xdoc = xdoc;
+        }
+
+        public IEnumerable<XElement> QueryPackages(string nameFilter, string versionFilter)
+        {
+            var pr = GetXDoc().Descendants().Elements("PackageReference");
+            if (!string.IsNullOrEmpty(nameFilter) || !string.IsNullOrEmpty(versionFilter))
+            {
+                pr = FilterPackageReferences(pr, nameFilter, versionFilter);
+            }
+            return pr;
+        }
+
+        private XDocument GetXDoc()
+        {
+            if (_xdoc == null)
+            {
+                if (!string.IsNullOrEmpty(_filename))
+                {
+                    _xdoc = XDocument.Parse(File.ReadAllText(_filename));
+                }
+            }
+            
+            return _xdoc;
+        }
+
+        /// <summary>
+        /// filter package references by name
+        /// </summary>
+        /// <param name="pr"></param>
+        /// <param name="packageNameSpec"></param>
+        /// <returns></returns>
+        private IEnumerable<XElement> FilterPackageReferences(IEnumerable<XElement> pr, string packageNameSpec, string versionSpec)
+        {
+            IEnumerable<XElement> l = pr.ToList();
+            if (!string.IsNullOrEmpty(packageNameSpec))
+            {
+                l = FilterByAttribute(l, PackageConstants.PackageNameAttr, packageNameSpec);
+            }
+
+            if (!string.IsNullOrEmpty(versionSpec))
+            {
+                l = FilterVersion(l, versionSpec);
+            }
+            return l;
+        }
+
+        private IEnumerable<XElement> FilterVersion(IEnumerable<XElement> pr, string version)
+        {
+            if (!string.IsNullOrEmpty(version))
+            {
+                pr = FilterByAttribute(pr, PackageConstants.PackageVersionAttr, version);
+                // TODO: this may wipe out before one
+                //pr = FilterByChildElement(pr,PackageConstants.PackageVersionAttr,version);
+            }
+            return pr;
+        }
 
         // If you want to implement both "*" and "?"
         private static string WildCardToRegular(string value)
@@ -57,53 +125,7 @@ namespace nugetversion.PackageReference
             return pr;
         }
 
-        /// <summary>
-        /// filter package references by name
-        /// </summary>
-        /// <param name="pr"></param>
-        /// <param name="packageNameSpec"></param>
-        /// <returns></returns>
-        public IEnumerable<XElement> FilterPackageReferences(IEnumerable<XElement> pr, string packageNameSpec, string versionSpec)
-        {
-            IEnumerable<XElement> l = pr.ToList();
-            if (!string.IsNullOrEmpty(packageNameSpec))
-            {
-                l = FilterByAttribute(l, PackageConstants.PackageNameAttr, packageNameSpec);
-            }
 
-            if (!string.IsNullOrEmpty(versionSpec))
-            {
-                l = FilterVersion(l,versionSpec);
-            }
-            return l;
-        }
 
-        public IEnumerable<XElement> FilterVersion(IEnumerable<XElement> pr, string version)
-        {
-            if (!string.IsNullOrEmpty(version))
-            {
-                pr = FilterByAttribute(pr, PackageConstants.PackageVersionAttr, version);
-                // TODO: this may wipe out before one
-                //pr = FilterByChildElement(pr,PackageConstants.PackageVersionAttr,version);
-            }
-            return pr;
-        }
-
-        public IEnumerable<XElement> QueryP(XDocument doc, string nameFilter, string versionFilter)
-        {
-            var pr = doc.Descendants().Elements("PackageReference");
-            if (!string.IsNullOrEmpty(nameFilter) || !string.IsNullOrEmpty(versionFilter))
-            {
-                pr = FilterPackageReferences(pr, nameFilter, versionFilter);
-            }
-
-            return pr;
-        }
-
-        public IEnumerable<XElement> QueryP(XDocument doc)
-        {
-            return QueryP(doc, null, null);
-        }
     }
-
 }

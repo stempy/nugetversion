@@ -1,6 +1,6 @@
-namespace nugetversion.PackageReference
+namespace NugetVersion.PackageReference
 {
-    public class PackageReference
+    public class PackageReferenceModel
     {
         public string Name { get; set; }
         public string Version { get; set; }
