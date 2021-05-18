@@ -3,26 +3,27 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using NugetVersion.Models;
 
 namespace NugetVersion.PackageReference
 {
     // query XDocument Package references
-    internal class PackageReferenceQuery
+    internal class PackageReferenceXmlReader
     {
         private readonly string _filename;
         private XDocument _xdoc;
 
-        public PackageReferenceQuery(string filename)
+        public PackageReferenceXmlReader(string filename)
         {
             _filename = filename;
         }
 
-        public PackageReferenceQuery(XDocument xdoc)
+        public PackageReferenceXmlReader(XDocument xdoc)
         {
             _xdoc = xdoc;
         }
 
-        public IEnumerable<XElement> QueryPackages(string nameFilter, string versionFilter)
+        public IEnumerable<XElement> GetPackageReferenceElements(string nameFilter, string versionFilter)
         {
             var pr = GetXDoc().Descendants().Elements("PackageReference");
             if (!string.IsNullOrEmpty(nameFilter) || !string.IsNullOrEmpty(versionFilter))
@@ -53,17 +54,17 @@ namespace NugetVersion.PackageReference
         /// <returns></returns>
         private IEnumerable<XElement> FilterPackageReferences(IEnumerable<XElement> pr, string packageNameSpec, string versionSpec)
         {
-            IEnumerable<XElement> l = pr.ToList();
+            IEnumerable<XElement> fndElements = pr.ToList();
             if (!string.IsNullOrEmpty(packageNameSpec))
             {
-                l = FilterByAttribute(l, PackageConstants.PackageNameAttr, packageNameSpec);
+                fndElements = FilterByAttribute(fndElements, PackageConstants.PackageNameAttr, packageNameSpec);
             }
 
             if (!string.IsNullOrEmpty(versionSpec))
             {
-                l = FilterVersion(l, versionSpec);
+                fndElements = FilterVersion(fndElements, versionSpec);
             }
-            return l;
+            return fndElements;
         }
 
         private IEnumerable<XElement> FilterVersion(IEnumerable<XElement> pr, string version)
@@ -94,12 +95,14 @@ namespace NugetVersion.PackageReference
                     // wildcard name
                     var regexPattern = WildCardToRegular(attribVal);
                     var r = new Regex(regexPattern, RegexOptions.IgnoreCase);
-                    newList = newList.Where(u => r.IsMatch(u.Attribute(attribName) != null ? u.Attribute(attribName).Value : ""));
+                    newList = newList.Where(u => r.IsMatch(u.Attribute(attribName) != null ? 
+                                                                                    u.Attribute(attribName).Value : ""));
                 }
                 else
                 {
                     // specific name
-                    newList = pr.Where(u => u.Attribute(attribName) != null && u.Attribute(attribName).Value.Contains(attribVal));
+                    newList = pr.Where(u => u.Attribute(attribName) != null 
+                                                && u.Attribute(attribName).Value.Contains(attribVal));
                 }
             }
             return newList;

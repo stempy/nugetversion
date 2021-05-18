@@ -2,11 +2,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 using NugetVersion.Extensions;
-using NugetVersion.PackageReference;
+using NugetVersion.Models;
 
-namespace NugetVersion
+namespace NugetVersion.PackageReference
 {
-    internal class PackageReferenceXElementMapper
+    internal class PackageReferenceXmlMapper
     {
         public IEnumerable<PackageReferenceModel> Map(IEnumerable<XElement> items)
         {
