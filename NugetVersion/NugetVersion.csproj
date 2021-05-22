@@ -13,6 +13,7 @@
     <RepositoryType>git</RepositoryType>
     <PackageTags>nuget dotnet</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
