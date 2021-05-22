@@ -15,6 +15,7 @@ namespace NugetVersion
     {
         static void Main(string[] args)
         {
+            Console.WriteLine($"NugetVersion - v{GetVersion().ToString()}");
             var app = new CommandLineApplication();
             app.HelpOption();
 
@@ -23,48 +24,54 @@ namespace NugetVersion
             var optionVersionFilter = app.Option("-v|--version <VERSION>", "Version filter", CommandOptionType.SingleValue);
             var optionSetVersion = app.Option("-sv|--set-version <VERSION>", "Update versions of query to new version", CommandOptionType.SingleValue);
 
-            var basePath = ".";
-
-            if (args.Any(x => !x.StartsWith("-")))
-            {
-                basePath = args.FirstOrDefault(x => !x.StartsWith("-"));
-                args = args.Where(x => !x.StartsWith(basePath)).ToArray();
-            }
-
-            var optShift = args.ToList();
-
-            //app.ThrowOnUnexpectedArgument = false;
-
             app.OnExecute(() =>
             {
                 var basePathValue = basePathOption.HasValue() ? basePathOption.Value() : null;
                 var nameFilter = optionName.HasValue() ? optionName.Value() : null;
                 var versionFilter = optionVersionFilter.HasValue() ? optionVersionFilter.Value() : null;
                 var setVersion = optionSetVersion.HasValue() ? optionSetVersion.Value() : null;
-
                 var remaining = app.RemainingArguments;
-
-                if (!string.IsNullOrEmpty(basePathValue))
-                {
-                    if (basePath != ".")
-                    {
-                        throw new ArgumentException($"Path and basePath Specified: {basePath} -b {basePathValue}");
-                    }
-
-                    basePath = basePathValue;
-                }
-                Execute(basePath, nameFilter, versionFilter, setVersion);
+                Execute(basePathValue, nameFilter, versionFilter, setVersion);
+                Console.WriteLine("Complete!");
             });
 
-            app.Execute(optShift.ToArray());
+            // Some fudge to get command line parameters sorted
+            var argList = args.ToList();
 
-            Console.WriteLine("Complete!");
+            if (argList.Any())
+            {
+                if (!argList.First().Trim().StartsWith("-")
+                    && !argList.Any(x => x.Trim().Contains("-b")
+                                         || x.Trim().Contains("--base")))
+                {
+                    var basePath = argList.First();
+                    argList[0] = "-b " + basePath;
+                }
+                else if (argList.Any(x => x.Contains("-")) && argList.First().Trim().StartsWith("-"))
+                {
+                    argList.Insert(0, "-b .");
+                }
+
+                app.Execute(argList.ToArray());
+
+            }
+            else
+            {
+                
+                app.ShowHelp();
+            }
 
             if (Debugger.IsAttached)
             {
                 Console.ReadKey();
             }
         }
+
+        static Version GetVersion()
+        {
+            return typeof(Program).Assembly.GetName().Version;
+        }
+
 
         static IEnumerable<ProjectFile> GetProjectFiles(string basePath, string nameFilter, string versionFilter)
         {

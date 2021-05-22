@@ -12,8 +12,8 @@ namespace NugetVersion.PackageReference
         {
             return items.Select(x => new PackageReferenceModel()
             {
-                Name = XmlXElementExtensions.GetXElementAttributeValueOrNull(x, PackageConstants.PackageNameAttr) ?? XmlXElementExtensions.GetXElementAttributeValueOrNull(x, "Update"),
-                Version = XmlXElementExtensions.GetXElementAttributeValueOrNull(x, PackageConstants.PackageVersionAttr) ?? x.Element("Version")?.Value
+                Name = x.GetXElementAttributeValueOrNull(PackageConstants.PackageNameAttr) ?? x.GetXElementAttributeValueOrNull("Update"),
+                Version = x.GetXElementAttributeValueOrNull(PackageConstants.PackageVersionAttr) ?? x.Element("Version")?.Value
             });
         }
 
