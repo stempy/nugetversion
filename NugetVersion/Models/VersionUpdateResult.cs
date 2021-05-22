@@ -1,4 +1,4 @@
-namespace nugetversion.PackageReference
+namespace NugetVersion.Models
 {
     public class VersionUpdateResult
     {

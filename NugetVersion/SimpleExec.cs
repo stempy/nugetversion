@@ -1,4 +1,4 @@
-namespace nugetversion
+namespace NugetVersion
 {
     public class SimpleExec
     {

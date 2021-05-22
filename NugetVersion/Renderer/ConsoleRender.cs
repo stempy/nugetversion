@@ -1,6 +1,6 @@
 using System;
 
-namespace nugetversion
+namespace NugetVersion.Renderer
 {
     public static class ConsoleRender
     {
