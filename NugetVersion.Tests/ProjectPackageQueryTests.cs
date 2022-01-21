@@ -1,5 +1,6 @@
 using System.IO;
 using System.Linq;
+using NugetVersion.Models;
 using NugetVersion.Project;
 using Xunit;
 using Xunit.Abstractions;
@@ -27,7 +28,13 @@ namespace NugetVersion.Tests
 
             var xmlProjectFile = Path.Combine(SamplesDir, fileName);
 
-            var projectFile = new ProjectFile(xmlProjectFile,nameFilter, versionFilter);
+            var filter = new SearchQueryFilter()
+            {
+                Name = nameFilter,
+                Version = versionFilter
+            };
+
+            var projectFile = new ProjectFile(xmlProjectFile,filter);
             projectFile.QueryPackages();
             WriteOutput(projectFile);
             
@@ -45,7 +52,13 @@ namespace NugetVersion.Tests
             var nameFilter = "*.NET.Test.*";
             var xmlProjectFile = Path.Combine(SamplesDir, fileName);
 
-            var projectFile = new ProjectFile(xmlProjectFile, nameFilter, "");
+            var filter = new SearchQueryFilter()
+            {
+                Name = nameFilter,
+                Version = ""
+            };
+
+            var projectFile = new ProjectFile(xmlProjectFile, filter);
             projectFile.QueryPackages();
             WriteOutput(projectFile);
             var fndPackage = projectFile.LastQueriedPackages.First();
@@ -60,7 +73,14 @@ namespace NugetVersion.Tests
             var expectedVersion = "16.7.1";
             var versionFilter = "16.7.*";
             var xmlProjectFile = Path.Combine(SamplesDir, fileName);
-            var projectFile = new ProjectFile(xmlProjectFile, "",versionFilter);
+
+            var filter = new SearchQueryFilter()
+            {
+                Name = "",
+                Version = versionFilter
+            };
+
+            var projectFile = new ProjectFile(xmlProjectFile, filter);
             projectFile.QueryPackages();
             WriteOutput(projectFile);
             
