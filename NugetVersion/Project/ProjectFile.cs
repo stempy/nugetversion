@@ -9,7 +9,25 @@ using NugetVersion.PackageReference;
 
 namespace NugetVersion.Project
 {
-    public class ProjectFile
+    public class ProjectFileDto
+    {
+        public string Filename { get; set; }
+        public IEnumerable<ProjectReferenceModel> ProjectReferences { get; set; }
+        public IEnumerable<string> ReferencedByProjects { get; set; }
+        public IEnumerable<PackageReferenceModel> PackageReferences { get; set; }
+
+        public string TargetFramework { get; set; }
+        public string Version { get; set; }
+        public string Description { get; set; }
+        public string ProjectSdk { get; set; }
+        public string OutputType { get; set; }
+        public string IsPackable { get; set; }
+        public string PackAsTool { get; set; }
+        public string AssemblyVersion { get; set; }
+        public string FileVersion { get; set; }
+    }
+
+    public class ProjectFile : ProjectFileDto
     {
         private readonly string _filename;
         private readonly string _nameFilter;
@@ -17,15 +35,6 @@ namespace NugetVersion.Project
 
         private readonly PackageReferenceXmlMapper _mapper;
 
-        public string OutputType { get; set; }
-        public string IsPackable { get; set; }
-        public string PackAsTool { get; set; }
-        public string TargetFramework { get; set; }
-        public string AssemblyVersion { get; set; }
-        public string FileVersion { get; set; }
-        public string Version { get; set; }
-        public string Description { get; set; }
-        public string ProjectSdk { get; set; }
 
         public string Filename => _filename;
         public string NameFilter => _nameFilter;
@@ -34,12 +43,12 @@ namespace NugetVersion.Project
         public IEnumerable<PackageReferenceModel> LastQueriedPackages { get; private set; }
 
 
-        public ProjectFile(string filename, string nameFilter, string versionFilter)
+        public ProjectFile(string filename, SearchQueryFilter filter)
         {
             _filename = filename;
             _mapper = new PackageReferenceXmlMapper();
-            _nameFilter = nameFilter;
-            _versionFilter = versionFilter;
+            _nameFilter = filter.Name;
+            _versionFilter = filter.Version;
 
             ReadProjectInfo();
         }
@@ -83,9 +92,16 @@ namespace NugetVersion.Project
 
         public IEnumerable<PackageReferenceModel> QueryPackages()
         {
-            return LastQueriedPackages ??= 
+            LastQueriedPackages ??= 
                         _mapper.Map(new PackageReferenceXmlReader(GetXDoc()).GetPackageReferenceElements(_nameFilter, _versionFilter));
+
+            PackageReferences = LastQueriedPackages;
+            return LastQueriedPackages;
         }
 
+        public IEnumerable<ProjectReferenceModel> GetProjectReferences()
+        {
+            return ProjectReferences ??= new PackageReferenceReader().GetProjectReferences(GetXDoc());
+        }
     }
 }

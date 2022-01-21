@@ -50,11 +50,26 @@ namespace NugetVersion.Renderer
             
         }
 
+        public void Render(IEnumerable<ProjectReferenceModel> items, int startTabPad, int maxNameWidth)
+        {
+            var tabIdx = startTabPad;
+            var tabStr = new string(' ', tabIdx);
+            var padRightMax = maxNameWidth + 10;
+
+            ConsoleRender.W($"{tabStr}ProjectReferences:\n");
+            foreach (var pr in items)
+            {
+                ConsoleRender.W($"{tabStr}{pr.Include.PadRight(padRightMax)}\n", ProjectPackageNameColor);
+            }
+        }
+
         public void Render(IEnumerable<PackageReferenceModel> items, int startTabPad, int maxNameWidth)
         {
             var tabIdx = startTabPad;
             var tabStr = new string(' ', tabIdx);
             var padRightMax = maxNameWidth + 10;
+
+            ConsoleRender.W($"{tabStr}Nuget:\n");
             foreach (var pr in items)
             {
                 ConsoleRender.W($"{tabStr}{pr.Name.PadRight(padRightMax)}", ProjectPackageNameColor)
