@@ -9,9 +9,9 @@ namespace NugetVersion.Project
 {
     public class ProjectFileService
     {
-        public IEnumerable<ProjectFile> GetProjectFilesByFilter(string basePath, SearchQueryFilter filter)
+        public IEnumerable<ProjectFile> GetProjectFilesByFilter(string basePath, SearchQueryFilter filter, string projFilePattern = "*.csproj")
         {
-            var projFiles = Directory.GetFiles(basePath, "*.csproj", SearchOption.AllDirectories)
+            var projFiles = Directory.GetFiles(basePath, projFilePattern, SearchOption.AllDirectories)
                 .Select(x => new ProjectFile(x, filter));
 
             if (!string.IsNullOrEmpty(filter.TargetFramework))
@@ -20,20 +20,16 @@ namespace NugetVersion.Project
             }
 
             projFiles = projFiles.Where(x => x.QueryPackages().Any()).ToList();
-
-            //DetermineProjectReferences(projFiles);
-
             return projFiles;
         }
 
-        private void DetermineProjectReferences(IEnumerable<ProjectFile> projFiles)
-        {
-            throw new NotImplementedException();
-        }
 
-        public bool SetNugetPackageVersions(string nameFilter, string versionFilter, string setVersion,
+        public bool SetNugetPackageVersions(SearchQueryFilter filter, string setVersion,
             IEnumerable<ProjectFile> projFiles, string strPad, ProjectNugetVersionUpdater tools)
         {
+            var nameFilter = filter.Name;
+            var versionFilter = filter.Version;
+            
             var numProjectFiles = projFiles.Count();
             if (numProjectFiles < 1)
             {
