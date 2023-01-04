@@ -11,6 +11,13 @@ namespace NugetVersion.Renderer
 {
     public class ProjectFileConsoleRenderer : IProjectFileResultsRenderer
     {
+        private readonly NugetVersionOptions _nugetOptions;
+
+        public ProjectFileConsoleRenderer(NugetVersionOptions nugetVersionOptions)
+        {
+            _nugetOptions = nugetVersionOptions;
+        }
+
         public OutputFileFormat Format => OutputFileFormat.Default;
         
         
@@ -47,7 +54,10 @@ namespace NugetVersion.Renderer
                 {
                     Render(projectFile);
                     Render(packages, StartTabPad, maxNameWidth);
-                    Render(projectFile.GetProjectReferences(), StartTabPad, maxNameWidth);
+                    if (_nugetOptions.RenderProjectReferences)
+                    {
+                        Render(projectFile.GetProjectReferences(), StartTabPad, maxNameWidth);    
+                    }
                 }
             }
 

@@ -68,6 +68,9 @@ namespace NugetVersion
             var optionSetVersion = app.Option("-sv|--set-version <VERSION>", "Update versions of query to new version",
                 CommandOptionType.SingleValue);
 
+            var suppressProjectReferences = app.Option("-srefs|--suppressrefs", "Suppress Project References",
+                CommandOptionType.NoValue);
+            
             app.OnExecute(() =>
             {
                 var basePathValue = basePathOption.HasValue() ? basePathOption.Value() : null;
@@ -77,6 +80,9 @@ namespace NugetVersion
                 var setVersion = optionSetVersion.HasValue() ? optionSetVersion.Value() : null;
                 var outputFileOption = outputFile.HasValue() ? outputFile.Value() : null;
                 var outputFileFormatVal = outputFileFormartOption.HasValue() ? outputFileFormartOption.Value(): null;
+                var suppressRefs = suppressProjectReferences.HasValue() ? suppressProjectReferences.Value():null;
+
+                var suppressRefsBool = !string.IsNullOrEmpty(suppressRefs);
                 
                 var searchQuery = new SearchQueryFilter()
                 {
@@ -85,9 +91,8 @@ namespace NugetVersion
                     Version = versionFilter
                 };
 
-
                 var remaining = app.RemainingArguments;
-                Execute(basePathValue, searchQuery, setVersion, outputFileOption, outputFileFormatVal);
+                Execute(basePathValue, searchQuery, setVersion, outputFileOption, outputFileFormatVal, suppressRefsBool);
             });
             return app;
         }
@@ -97,9 +102,18 @@ namespace NugetVersion
             return typeof(Program).Assembly.GetName().Version;
         }
 
-        static void Execute(string basePath, SearchQueryFilter filter, string? setVersion, string outputFile,
-            string outputFileFormatStr)
+        static void Execute(string basePath, SearchQueryFilter filter, string setVersion, string outputFile,
+            string outputFileFormatStr, bool suppressRefsBool)
         {
+            var nugetVersionOptions = new NugetVersionOptions()
+            {
+                SearchFilter = filter,
+                BasePath = basePath,
+                OutputFile = outputFile,
+                OutputFileFormat = outputFileFormatStr,
+                RenderProjectReferences = !suppressRefsBool
+            };
+            
             var tools = new ProjectNugetVersionUpdater(new DotNetPackageReferenceUpdater());
             var projFileService = new ProjectFileService();
 
@@ -112,6 +126,12 @@ namespace NugetVersion
             basePath = Path.GetFullPath(basePath);
             var projFiles = projFileService.GetProjectFilesByFilter(basePath, filter);
 
+            if (!projFiles.Any())
+            {
+                Console.WriteLine($"No project file matches for {basePath}");
+                return;
+            }
+            
             if (!string.IsNullOrEmpty(outputFile))
             {
                 var outputFilePath = Path.GetFullPath(outputFile);
@@ -133,7 +153,7 @@ namespace NugetVersion
                     projectFileRenderer = new ProjectFileJsonRenderer();
                     break;
                 default:
-                    projectFileRenderer = new ProjectFileConsoleRenderer();
+                    projectFileRenderer = new ProjectFileConsoleRenderer(nugetVersionOptions);
                     break;
             }
 
