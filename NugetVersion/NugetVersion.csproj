@@ -5,14 +5,14 @@
     <IsPackable>true</IsPackable>
     <PackAsTool>true</PackAsTool>
     <TargetFramework>net6.0</TargetFramework>
-    <Version>1.5.0</Version>
+    <!-- <Version>1.5.0</Version> -->
     <Description>Query Multiple Projects by Specific Nuget name and Version, also update versions across multiple projects</Description>
     <PackageProjectUrl>https://github.com/stempy/nugetversion</PackageProjectUrl>
     <RepositoryUrl>https://github.com/stempy/nugetversion</RepositoryUrl>
     <Authors>Rob Stemp</Authors>
     <RepositoryType>git</RepositoryType>
     <PackageTags>nuget dotnet</PackageTags>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <!-- <GeneratePackageOnBuild>true</GeneratePackageOnBuild> -->
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
