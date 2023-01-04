@@ -34,7 +34,7 @@ jobs:
     - name: Build
       run: dotnet build --configuration Release --no-restore -p:Version=${{ steps.gitversion.outputs.fullSemVer }}
     - name: Test
-      run: dotnet test --no-restore --no-build --verbosity normal --logger trx --results-directory "TestResults"
+      run: dotnet test --no-restore --no-build --logger trx --results-directory TestResults
     - name: Upload dotnet test results
       uses: actions/upload-artifact@v3
       with:
