@@ -34,5 +34,5 @@ jobs:
       if: ${{ always() }}
     - name: Pack nugets
       run: dotnet pack --configuration Release --no-restore --no-build --output .
-    # - name: Push to NuGet
-    #   run: dotnet nuget push "*.nupkg" --api-key ${{secrets.NUGETORG_APIKEY}} --source https://api.nuget.org/v3/index.json
+    - name: Push to NuGet
+      run: dotnet nuget push "*.nupkg" --api-key ${{secrets.NUGETORG_APIKEY}} --source https://api.nuget.org/v3/index.json
