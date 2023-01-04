@@ -70,7 +70,7 @@ namespace NugetVersion.Tests
         public void test_version_filter()
         {
             var fileName = "sample-csproj.xml";
-            var expectedVersion = "16.7.1";
+            var expectedVersionContains = "16.7.";
             var versionFilter = "16.7.*";
             var xmlProjectFile = Path.Combine(SamplesDir, fileName);
 
@@ -85,7 +85,7 @@ namespace NugetVersion.Tests
             WriteOutput(projectFile);
             
             Assert.All(projectFile.LastQueriedPackages,
-                x=> Assert.True(x.Version.Contains("16.7."),"invalid version"));
+                x=> Assert.True(x.Version.Contains(expectedVersionContains),"invalid version"));
         }
     }
 }

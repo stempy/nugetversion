@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using NugetVersion.Models;
 using NugetVersion.Project;
 
@@ -40,10 +41,16 @@ namespace NugetVersion.Renderer
             var strPad = new string(' ', StartTabPad);
             var maxNameWidth = GetMaxLength(projFiles.SelectMany(x => x.LastQueriedPackages));
 
+            var json = JsonSerializer.Serialize(filter,
+                new JsonSerializerOptions()
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                });
+
             ConsoleRender.W($"{basePath}\n");
             ConsoleRender.W($"{DateTime.Now.ToShortDateString()} {DateTime.Now.ToShortTimeString()}\n");
-            ConsoleRender.W(
-                $"Filter: {JsonSerializer.Serialize(filter, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, IgnoreNullValues = true })}\n\n");
+            ConsoleRender.W($"Filter: {json}\n\n");
 
             foreach (var projectFile in projFiles)
             {

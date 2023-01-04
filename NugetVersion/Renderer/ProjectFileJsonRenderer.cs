@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using NugetVersion.Models;
 using NugetVersion.Project;
 
@@ -13,7 +14,7 @@ namespace NugetVersion.Renderer
         public JsonSerializerOptions JsonSerializerOptions { get; set; } = new JsonSerializerOptions()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            IgnoreNullValues = true,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             WriteIndented = true
         };
 
