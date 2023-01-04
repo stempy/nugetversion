@@ -1,4 +1,4 @@
-﻿namespace NugetVersion
+﻿namespace NugetVersion.Models
 {
     public enum OutputFileFormat
     {

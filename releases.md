@@ -1,5 +1,10 @@
 # Release History
 
+1.5.0
+
+- upgraded .net versions to .net6.0 LTS
+- added --suppressrefs option to exclude project references
+
 1.0.6
 
 - Added output to file flag -o [filepath]

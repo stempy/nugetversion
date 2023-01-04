@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text.Json;
 using NugetVersion.Models;
 using NugetVersion.Project;
-using Console = System.Console;
 
 namespace NugetVersion.Renderer
 {
@@ -56,7 +55,11 @@ namespace NugetVersion.Renderer
                     Render(packages, StartTabPad, maxNameWidth);
                     if (_nugetOptions.RenderProjectReferences)
                     {
-                        Render(projectFile.GetProjectReferences(), StartTabPad, maxNameWidth);    
+                        var projectRefs = projectFile.GetProjectReferences();
+                        if (projectRefs.Any())
+                        {
+                            Render(projectRefs, StartTabPad, maxNameWidth);
+                        }
                     }
                 }
             }
@@ -109,10 +112,10 @@ namespace NugetVersion.Renderer
             {
                 targetFrameworkColor = HighlightWarning;
                 targetFramework += " (recommend 2.1)";
-            } else if (targetFramework == "netcoreapp3.0")
+            } else if (targetFramework.Contains("netcoreapp3."))
             {
                 targetFrameworkColor = HighlightWarning;
-                targetFramework += " (3.0 is obsolete, use 3.1 or .NET 5.x+)";
+                targetFramework += " (3.x is obsolete, .NET 5.x+ or greater)";
             }
             
             ConsoleRender.W($"{targetFramework}",targetFrameworkColor);
