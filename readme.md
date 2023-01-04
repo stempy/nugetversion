@@ -1,8 +1,8 @@
-# NugetVersion .NET Core Global tool [![Build Status](https://www.myget.org/BuildSource/Badge/websolving?identifier=d8511a4a-1125-401b-bf4c-fde985065cd4)]
+# NugetVersion .NET Core Global tool 
 
 .NET Core Global Tool for querying and updating Nuget project versions across multiple projects within a directory
 
-### <a name="dotnet-nugetversion-tool"></a> Global tool for .NET 6.x+ and later
+<a name="dotnet-nugetversion-tool"></a> Global tool for .NET 6.x+ and later
 
 .NET 6.x+ is required for [global tools](https://docs.microsoft.com/en-us/dotnet/core/tools/global-tools),
 meaning that you can install `nugetversion` using the .NET CLI and use it everywhere.
