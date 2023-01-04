@@ -2,9 +2,9 @@
 
 .NET Core Global Tool for querying and updating Nuget project versions across multiple projects within a directory
 
-### <a name="dotnet-nugetversion-tool"></a> Global tool for .NET Core 3.1 and later
+### <a name="dotnet-nugetversion-tool"></a> Global tool for .NET 6.x+ and later
 
-.NET Core 3.1 is required for [global tools](https://docs.microsoft.com/en-us/dotnet/core/tools/global-tools),
+.NET 6.x+ is required for [global tools](https://docs.microsoft.com/en-us/dotnet/core/tools/global-tools),
 meaning that you can install `nugetversion` using the .NET CLI and use it everywhere.
 
 > :warning: To use global tools, .Net Core SDK 2.1.300 or later is required. 

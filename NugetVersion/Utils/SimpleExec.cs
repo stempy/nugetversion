@@ -1,6 +1,6 @@
-namespace NugetVersion
+namespace NugetVersion.Utils
 {
-    public class SimpleExec
+    internal class SimpleExec
     {
         public int Exec(string file, string args)
         {

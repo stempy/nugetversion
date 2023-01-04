@@ -15,7 +15,5 @@ namespace NugetVersion.Extensions
         {
             return els.FirstOrDefault(x => x.Name == key)?.Value;
         }
-
-
 	}
 }
