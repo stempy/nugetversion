@@ -18,7 +18,7 @@ namespace NugetVersion.Project
         private readonly PackageReferenceXmlMapper _mapper;
 
 
-        public string Filename => _filename;
+        public new string Filename => _filename;
         public string NameFilter => _nameFilter;
         public string VersionFilter => _versionFilter;
 
