@@ -12,12 +12,18 @@
     <Authors>Rob Stemp</Authors>
     <RepositoryType>git</RepositoryType>
     <PackageTags>nuget dotnet</PackageTags>
-    <!-- <GeneratePackageOnBuild>true</GeneratePackageOnBuild> -->
+    <PackageReadmeFile>readme.md</PackageReadmeFile>
+
+     <!--<GeneratePackageOnBuild>true</GeneratePackageOnBuild>--> 
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\readme.md" Link="docs\readme.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>
