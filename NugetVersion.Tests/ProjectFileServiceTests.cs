@@ -15,20 +15,18 @@ namespace NugetVersion.Tests
             _projectFileService = new ProjectFileService();
         }
 
-        [Fact]
-        public void test_framework_filter()
+        [Theory]
+        [InlineData("net5.0",1)]
+        [InlineData("netcoreapp3.1", 2)]
+        public void test_framework_filter(string netFramework, int projectCount)
         {
-            var net5query = new SearchQueryFilter() { TargetFramework = "net5.0" };
-            var net3query = new SearchQueryFilter() { TargetFramework = "netcoreapp3.1" };
+            var query = new SearchQueryFilter() { TargetFramework = netFramework };
 
-            var expectedNet5ProjectCount = 1;
-            var expectedNet3ProjectCount = 2;
+            var queryResults = _projectFileService.GetProjectFilesByFilter(
+                GetSamplesDir(), 
+                query, "*-csproj.xml");
 
-            var net5queryResults = _projectFileService.GetProjectFilesByFilter(GetSamplesDir(), net5query, "*-csproj.xml");
-            Assert.Equal(expectedNet5ProjectCount, net5queryResults.Count());
-
-            var net3queryResults = _projectFileService.GetProjectFilesByFilter(GetSamplesDir(), net3query, "*-csproj.xml");
-            Assert.Equal(expectedNet3ProjectCount, net3queryResults.Count());
+            Assert.Equal(projectCount, queryResults.Count());
         }
     }
 }
