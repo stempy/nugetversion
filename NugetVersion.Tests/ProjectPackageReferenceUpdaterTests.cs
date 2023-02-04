@@ -15,30 +15,27 @@ namespace NugetVersion.Tests
         [Fact]
         public void test_xml_updater()
         {
+            // 1. arrange
             var fileName = "sample-csproj.xml";
             var expectedPackage = "Microsoft.NET.Test.Sdk";
             var expectedVersion = "16.7.1";
-
             var newVersion = "9.9.9";
-
             var xmlProjectFile = Path.Combine(GetSamplesDir(), fileName);
-
             var doc = XDocument.Parse(File.ReadAllText(xmlProjectFile));
-            
             var updater = new XmlPackageReferenceUpdater();
+
+            // 2. act
             updater.UpdateVersion(doc, expectedPackage, expectedVersion, newVersion);
 
             string resultDoc;
-
             using (var writer = new StringWriter())
             {
                 doc.Save(writer);
                 resultDoc= writer.ToString();
             }
 
+            // 3. assert
             WriteOutput(resultDoc);
         }
     }
-    
-    
 }

@@ -19,6 +19,7 @@ namespace NugetVersion.Tests
         [Fact]
         public void test_packagename_and_version_filter_combined()
         {
+            // 1. arrange
             var fileName = "sample-csproj.xml";
             var expectedPackage = "Microsoft.NET.Test.Sdk";
             var expectedVersion = "16.7.1";
@@ -35,11 +36,13 @@ namespace NugetVersion.Tests
             };
 
             var projectFile = new ProjectFile(xmlProjectFile,filter);
-            projectFile.QueryPackages();
-            WriteOutput(projectFile);
             
-            var fndPackage = projectFile.LastQueriedPackages.First();
+            // 2. act
+            projectFile.QueryPackages();
 
+            // 3. assert
+            WriteOutput(projectFile);
+            var fndPackage = projectFile.LastQueriedPackages.First();
             Assert.Equal(expectedPackage,fndPackage.Name);
             Assert.Equal(expectedVersion,fndPackage.Version);
         }
@@ -47,6 +50,7 @@ namespace NugetVersion.Tests
         [Fact]
         public void test_packagename_filter()
         {
+            // 1. arrange
             var fileName = "sample-csproj.xml";
             var expectedPackage = "Microsoft.NET.Test.Sdk";
             var nameFilter = "*.NET.Test.*";
@@ -58,17 +62,20 @@ namespace NugetVersion.Tests
                 Version = ""
             };
 
+            // 2. act
             var projectFile = new ProjectFile(xmlProjectFile, filter);
             projectFile.QueryPackages();
+
+            // 3. assert
             WriteOutput(projectFile);
             var fndPackage = projectFile.LastQueriedPackages.First();
-
             Assert.Equal(expectedPackage,fndPackage.Name);
         }
 
         [Fact]
         public void test_version_filter()
         {
+            // 1. arrange
             var fileName = "sample-csproj.xml";
             var expectedVersionContains = "16.7.";
             var versionFilter = "16.7.*";
@@ -80,10 +87,12 @@ namespace NugetVersion.Tests
                 Version = versionFilter
             };
 
+            // 2. act
             var projectFile = new ProjectFile(xmlProjectFile, filter);
             projectFile.QueryPackages();
+
+            // 3. assert
             WriteOutput(projectFile);
-            
             Assert.All(projectFile.LastQueriedPackages,
                 x=> Assert.True(x.Version.Contains(expectedVersionContains),"invalid version"));
         }
