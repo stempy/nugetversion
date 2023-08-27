@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace NugetVersion.Project
 {
@@ -28,7 +29,7 @@ namespace NugetVersion.Project
         }
 
 
-        public bool SetNugetPackageVersions(SearchQueryFilter filter, string setVersion,
+        public async Task<bool> SetNugetPackageVersions(SearchQueryFilter filter, string setVersion,
             IEnumerable<ProjectFile> projFiles, string strPad, ProjectNugetVersionUpdater tools)
         {
             var nameFilter = filter.Name;
@@ -51,7 +52,7 @@ namespace NugetVersion.Project
                 return true;
 
             // update versions
-            tools.UpdateVersionInProjects(projFiles, nameFilter, versionFilter, setVersion, true);
+            await tools.UpdateVersionInProjects(projFiles, nameFilter, versionFilter, setVersion, true);
 
             ConsoleRender.W($"Updated {numProjectFiles} projects with packages to version {setVersion}");
             return false;

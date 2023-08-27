@@ -17,3 +17,4 @@
 
 - fix: multiple target frameworks crash
 - added: getting latest nuget package version.  can be suppressed with `-supver`
+- added: setting versions to latest using `-sv latest`

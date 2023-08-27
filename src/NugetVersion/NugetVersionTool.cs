@@ -25,11 +25,12 @@ public class NugetVersionTool
 
     public NugetVersionTool(NugetVersionOptions nugetVersionOptions,
                             NugetPackageVersionUtil nugetVersionUtil,
+                            IPackageReferenceUpdater packageReferenceUpdater,
                             ILogger<NugetVersionTool> logger)
     {
         _logger = logger;
         _nugetVersionOptions = nugetVersionOptions;
-        _projectNugetVersionUpdater = new ProjectNugetVersionUpdater(new DotNetPackageReferenceUpdater());
+        _projectNugetVersionUpdater = new ProjectNugetVersionUpdater(packageReferenceUpdater);
         _projFileService = new ProjectFileService();
         var rendererFactory = new ProjectFileRendererFactory(_nugetVersionOptions);
         _projFileResultsRenderer = rendererFactory.CreateProjectFileRenderer();
@@ -101,7 +102,7 @@ public class NugetVersionTool
         {
             const int startTabPad = 10;
             var strPad = new string(' ', startTabPad);
-            if (_projFileService.SetNugetPackageVersions(_nugetVersionOptions.SearchFilter,
+            if (await _projFileService.SetNugetPackageVersions(_nugetVersionOptions.SearchFilter,
                     _nugetVersionOptions.SetNewVersionTo, projFiles, strPad, _projectNugetVersionUpdater))
             {
                 return;

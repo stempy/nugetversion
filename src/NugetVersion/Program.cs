@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using NugetVersion.GetNugetVersions;
 using NugetVersion.Models;
+using NugetVersion.PackageReference;
 using NugetVersion.Utils;
 using System;
 using System.Diagnostics;
@@ -37,7 +38,9 @@ namespace NugetVersion
                 argList.Insert(0, "-b .");
             }
 
-            await app.ExecuteAsync(argList.ToArray());
+            var finalArgs = argList.ToArray();
+
+            await app.ExecuteAsync(finalArgs);
             ConsoleFileOutput.EndRedirection();
 
             //Console.WriteLine("Completed.");
@@ -62,7 +65,7 @@ namespace NugetVersion
                 CommandOptionType.SingleValue);
             var optionVersionFilter =
                 app.Option("-v|--version <VERSION>", "Version filter", CommandOptionType.SingleValue);
-            var optionSetVersion = app.Option("-sv|--set-version <VERSION>", "Update versions of query to new version",
+            var optionSetVersion = app.Option("-sv|--set-version <VERSION>|latest", "Update versions of query to new version",
                 CommandOptionType.SingleValue);
 
             var suppressProjectReferences = app.Option<bool>("-srefs|--suppressrefs", "Suppress Project References",
@@ -108,8 +111,14 @@ namespace NugetVersion
                     SetNewVersionTo = setVersion
                 };
 
-                var nugetTool = new NugetVersionTool(nugetVersionOptions, new NugetPackageVersionUtil(loggerFactory.CreateLogger<NugetPackageVersionUtil>()),
-                                                    loggerFactory.CreateLogger<NugetVersionTool>());
+                //_projectNugetVersionUpdater = new ProjectNugetVersionUpdater(new DotNetPackageReferenceUpdater(nugetVersionUtil));
+
+                var packageVersionUtil =
+                    new NugetPackageVersionUtil(loggerFactory.CreateLogger<NugetPackageVersionUtil>());
+                IPackageReferenceUpdater packageReferenceUpdater = new DotNetPackageReferenceUpdater(packageVersionUtil,
+                    loggerFactory.CreateLogger<DotNetPackageReferenceUpdater>());
+
+                var nugetTool = new NugetVersionTool(nugetVersionOptions, packageVersionUtil, packageReferenceUpdater, loggerFactory.CreateLogger<NugetVersionTool>());
                 await nugetTool.ExecuteAsync();
 
                 if (Debugger.IsAttached)

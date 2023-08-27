@@ -44,12 +44,12 @@ nugetversion src-dir-to-project-folders [-n|--name nameSpec] [-v|--version versi
 - `-o filepath` - output results to file `-o somefile.txt`, now with `-of` flag this would suit `-of somefile.json`
 - `-of output-format` - format to output, ie `-of json` to output json, combine with `-o` flag to write file
 - `-fw targetFramework` - filter by target framework, ie `-fw net5.0`
-- `-sv|--set-version` - to set new version for queried packages
+- `-sv|--set-version` - to set new version for queried packages, can use `-sv latest` to set to latest available version
 - `-supver|--suppress-version-checks` - suppress remote version checks. Can speed up results, but will not load latest versions.
 
 
 ### Update Versions
-To update versions for a specific query, specify the `--set-version <VERSION>` switch, this uses the internal .NET core package command so is generally safe to use, however just be aware it will update according to the query you specify.
+To update versions for a specific query, specify the `--set-version <VERSION>|latest` switch, this uses the internal .NET core package command so is generally safe to use, however just be aware it will update according to the query you specify.
 
 This will show a list of items to be updated, and will prompt before starting the update process.
 
@@ -58,5 +58,22 @@ nugetversion src-dir-to-project-folders [-n|--name nameSpec] [-v|--version versi
 ```
 
 > WARNING: this will update ALL project file(s) and projects that match that criteria to the specific version specified if that version is available for that package.
+
+Examples:
+
+**Set to latest available**
+
+```sh
+nugetversion mypath-to-src -n Microsoft.Extensions -sv latest
+```
+
+**Set to specific version**
+
+```sh
+nugetversion mypath-to-src -n Microsoft.Extensions -sv 6.0.0
+```
+
+
+
 
 Releases at [releases.md](releases.md)

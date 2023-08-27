@@ -112,9 +112,10 @@ namespace NugetVersion.Renderer
 
         private Dictionary<string, string> oldToNewFrameworks = new Dictionary<string, string>()
         {
-            ["netstandard2.0"] = "net6.0",
+            ["netstandard2."] = "net6.0",
             ["netcoreapp2."] = "net6.0",
             ["netcoreapp3."] = "net6.0",
+            ["net5.0"] = "net6.0"
         };
 
 

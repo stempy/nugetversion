@@ -1,11 +1,12 @@
+using NugetVersion.Models;
+using NugetVersion.PackageReference;
+using NugetVersion.Renderer;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Xml.Linq;
-using NugetVersion.Models;
-using NugetVersion.PackageReference;
-using NugetVersion.Renderer;
 
 namespace NugetVersion.Project
 {
@@ -24,20 +25,20 @@ namespace NugetVersion.Project
             _packageReferenceUpdater = packageReferenceUpdater;
         }
 
-        public IDictionary<string, IEnumerable<VersionUpdateResult>> UpdateVersionInProjects(IEnumerable<ProjectFile> projectFiles, string nameFilter, string versionFilter, string newVersion, bool suppressPrompts = false)
+        public async Task<IDictionary<string, IEnumerable<VersionUpdateResult>>> UpdateVersionInProjects(IEnumerable<ProjectFile> projectFiles, string nameFilter, string versionFilter, string newVersion, bool suppressPrompts = false)
         {
             var d = new Dictionary<string, IEnumerable<VersionUpdateResult>>();
             foreach (var f in projectFiles)
             {
-                var results = UpdateVersionInProject(f.Filename, nameFilter, versionFilter, newVersion, suppressPrompts);
+                var results = await UpdateVersionInProject(f.Filename, nameFilter, versionFilter, newVersion, suppressPrompts);
                 d.Add(f.Filename, results);
             }
             return d;
         }
 
-        public IEnumerable<VersionUpdateResult> UpdateVersionInProject(string projectFile, 
-                                                string nameFilter, string versionFilter, 
-                                                string newVersion, bool suppressPrompt=false)
+        public async Task<IEnumerable<VersionUpdateResult>> UpdateVersionInProject(string projectFile,
+                                                string nameFilter, string versionFilter,
+                                                string newVersion, bool suppressPrompt = false)
         {
             var doc = XDocument.Parse(File.ReadAllText(projectFile));
             var items = new PackageReferenceXmlReader(doc)
@@ -60,7 +61,7 @@ namespace NugetVersion.Project
                     return null;
             }
 
-            return _packageReferenceUpdater.UpdateVersion(projectFile, nameFilter, versionFilter, newVersion);
+            return await _packageReferenceUpdater.UpdateVersion(projectFile, nameFilter, versionFilter, newVersion);
         }
     }
 }
