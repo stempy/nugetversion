@@ -56,9 +56,9 @@ namespace NugetVersion.Project
 
         public IEnumerable<PackageReferenceModel> QueryPackages()
         {
-            LastQueriedPackages ??=
-                        _mapper.Map(new PackageReferenceXmlReader(GetXDoc()).GetPackageReferenceElements(_packageNameFilter, _packageVersionFilter));
-
+            var prXmlReader = new PackageReferenceXmlReader(GetXDoc());
+            var prElements = prXmlReader.GetPackageReferenceElements(_packageNameFilter, _packageVersionFilter);
+            LastQueriedPackages ??= _mapper.Map(prElements);
             PackageReferences = LastQueriedPackages;
             return LastQueriedPackages;
         }

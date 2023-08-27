@@ -44,6 +44,9 @@ nugetversion src-dir-to-project-folders [-n|--name nameSpec] [-v|--version versi
 - `-o filepath` - output results to file `-o somefile.txt`, now with `-of` flag this would suit `-of somefile.json`
 - `-of output-format` - format to output, ie `-of json` to output json, combine with `-o` flag to write file
 - `-fw targetFramework` - filter by target framework, ie `-fw net5.0`
+- `-sv|--set-version` - to set new version for queried packages
+- `-supver|--suppress-version-checks` - suppress remote version checks. Can speed up results, but will not load latest versions.
+
 
 ### Update Versions
 To update versions for a specific query, specify the `--set-version <VERSION>` switch, this uses the internal .NET core package command so is generally safe to use, however just be aware it will update according to the query you specify.

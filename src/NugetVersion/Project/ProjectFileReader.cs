@@ -6,6 +6,11 @@ using System.Xml.Linq;
 
 namespace NugetVersion.Project;
 
+internal class ProjectFilePackageHelpers
+{
+}
+
+
 internal static class ProjectFileReader
 {
     internal static ProjectFileDto ReadProjectInfo(string projectFile)

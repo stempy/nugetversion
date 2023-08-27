@@ -1,43 +1,44 @@
 ﻿using McMaster.Extensions.CommandLineUtils;
+using Microsoft.Extensions.Logging;
+using NugetVersion.GetNugetVersions;
 using NugetVersion.Models;
 using NugetVersion.Utils;
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace NugetVersion
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             Console.WriteLine($"NugetVersion - v{GetVersion().ToString()}");
             var app = PrepCommandLineApplication();
 
             // Some fudge to get command line parameters sorted
             var argList = args.ToList();
-
-            if (argList.Any())
-            {
-                if (!argList.First().Trim().StartsWith("-")
-                    && !argList.Any(x => x.Trim().Contains("-b")
-                                         || x.Trim().Contains("--base")))
-                {
-                    var basePath = argList.First();
-                    argList[0] = "-b " + basePath;
-                }
-                else if (argList.Any(x => x.Contains("-")) && argList.First().Trim().StartsWith("-"))
-                {
-                    argList.Insert(0, "-b .");
-                }
-
-                app.Execute(argList.ToArray());
-                ConsoleFileOutput.EndRedirection();
-            }
-            else
+            if (!argList.Any())
             {
                 app.ShowHelp();
+                return;
             }
+
+            if (!argList.First().Trim().StartsWith("-")
+                && !argList.Any(x => x.Trim().Contains("-b")
+                                     || x.Trim().Contains("--base")))
+            {
+                var basePath = argList.First();
+                argList[0] = "-b " + basePath;
+            }
+            else if (argList.Any(x => x.Contains("-")) && argList.First().Trim().StartsWith("-"))
+            {
+                argList.Insert(0, "-b .");
+            }
+
+            await app.ExecuteAsync(argList.ToArray());
+            ConsoleFileOutput.EndRedirection();
 
             //Console.WriteLine("Completed.");
             if (Debugger.IsAttached)
@@ -67,7 +68,15 @@ namespace NugetVersion
             var suppressProjectReferences = app.Option<bool>("-srefs|--suppressrefs", "Suppress Project References",
                 CommandOptionType.NoValue);
 
-            app.OnExecute(() =>
+            var suppressLatestVersionChecks = app.Option<bool>("-supver|--suppress-version-checks",
+                "Suppress remote version checks", CommandOptionType.NoValue);
+
+
+            var loggerFactory = LoggerFactory.Create(builder =>
+                builder.AddConsole()
+                    .AddFilter("NugetVersion.GetNugetVersions.NugetPackageVersionUtil", LogLevel.Warning));
+
+            app.OnExecuteAsync(async ct =>
             {
                 var basePathValue = basePathOption.HasValue() ? basePathOption.Value() : null;
                 var fwFilter = optionTargetFrameworkFilter.HasValue() ? optionTargetFrameworkFilter.Value() : null;
@@ -77,6 +86,7 @@ namespace NugetVersion
                 var outputFileOption = outputFile.HasValue() ? outputFile.Value() : null;
                 var outputFileFormatVal = outputFileFormartOption.HasValue() ? outputFileFormartOption.Value() : null;
                 var suppressRefs = suppressProjectReferences.HasValue() ? suppressProjectReferences.ParsedValue : false;
+                var suppressVersionChecks = suppressLatestVersionChecks.HasValue() ? true : false;
 
                 var searchQuery = new SearchQueryFilter()
                 {
@@ -94,11 +104,13 @@ namespace NugetVersion
                     OutputFile = outputFileOption,
                     OutputFileFormat = outputFileFormatVal,
                     RenderProjectReferences = !suppressRefs,
+                    LoadVersionChecks = !suppressVersionChecks,
                     SetNewVersionTo = setVersion
                 };
 
-                var nugetTool = new NugetVersionTool(nugetVersionOptions);
-                nugetTool.Execute();
+                var nugetTool = new NugetVersionTool(nugetVersionOptions, new NugetPackageVersionUtil(loggerFactory.CreateLogger<NugetPackageVersionUtil>()),
+                                                    loggerFactory.CreateLogger<NugetVersionTool>());
+                await nugetTool.ExecuteAsync();
 
                 if (Debugger.IsAttached)
                 {

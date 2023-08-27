@@ -1,11 +1,16 @@
-﻿using System;
-using System.IO;
-using System.Linq;
+﻿using Microsoft.Extensions.Logging;
+using NuGet.Versioning;
+using NugetVersion.GetNugetVersions;
 using NugetVersion.Models;
 using NugetVersion.PackageReference;
 using NugetVersion.Project;
 using NugetVersion.Renderer;
 using NugetVersion.Utils;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace NugetVersion;
 
@@ -15,31 +20,44 @@ public class NugetVersionTool
     private readonly ProjectNugetVersionUpdater _projectNugetVersionUpdater;
     private readonly ProjectFileService _projFileService;
     private readonly IProjectFileResultsRenderer _projFileResultsRenderer;
+    private readonly NugetPackageVersionUtil _nugetVersionUtil;
+    private readonly ILogger<NugetVersionTool> _logger;
 
-    public NugetVersionTool(NugetVersionOptions nugetVersionOptions)
+    public NugetVersionTool(NugetVersionOptions nugetVersionOptions,
+                            NugetPackageVersionUtil nugetVersionUtil,
+                            ILogger<NugetVersionTool> logger)
     {
+        _logger = logger;
         _nugetVersionOptions = nugetVersionOptions;
         _projectNugetVersionUpdater = new ProjectNugetVersionUpdater(new DotNetPackageReferenceUpdater());
         _projFileService = new ProjectFileService();
-        _projFileResultsRenderer = CreateProjectFileRenderer();
+        var rendererFactory = new ProjectFileRendererFactory(_nugetVersionOptions);
+        _projFileResultsRenderer = rendererFactory.CreateProjectFileRenderer();
+        _nugetVersionUtil = nugetVersionUtil;
     }
 
-    private IProjectFileResultsRenderer CreateProjectFileRenderer()
+    public async Task<IDictionary<string, NuGetVersion>> GetLatestNugetPackageVersionsDictionary(IEnumerable<PackageReferenceModel> packages)
     {
-        OutputFileFormat outputFormat = !string.IsNullOrEmpty(_nugetVersionOptions.OutputFileFormat)
-            ? Enum.Parse<OutputFileFormat>(_nugetVersionOptions.OutputFileFormat, true)
-            : OutputFileFormat.Default;
-
-        switch (outputFormat)
+        // get latest version(s) for all packages
+        var latestPackageVersions = new Dictionary<string, NuGetVersion>();
+        foreach (var packageReferenceModel in packages)
         {
-            case OutputFileFormat.Json:
-                return new ProjectFileJsonRenderer();
-            default:
-                return new ProjectFileConsoleRenderer(_nugetVersionOptions);
+            var packageName = packageReferenceModel.Name;
+            // fetch latest
+            if (!latestPackageVersions.ContainsKey(packageName))
+            {
+                var latestVersion = await _nugetVersionUtil.GetLatestNugetPackageVersionAsync(packageName);
+                if (latestVersion != null)
+                {
+                    latestPackageVersions[packageName] = latestVersion;
+                }
+            }
         }
+        return latestPackageVersions;
     }
 
-    public void Execute()
+
+    public async Task ExecuteAsync()
     {
         var basePath = Path.GetFullPath(_nugetVersionOptions.BasePath);
         var projFiles = _projFileService.GetProjectFilesByFilter(basePath, _nugetVersionOptions.SearchFilter);
@@ -65,7 +83,19 @@ public class NugetVersionTool
             ConsoleFileOutput.RedirectConsoleToFile(outputFilePath);
         }
 
-        _projFileResultsRenderer.RenderResults(basePath, _nugetVersionOptions.SearchFilter, projFiles);
+
+
+        IDictionary<string, NuGetVersion> latestPackageVersions = new Dictionary<string, NuGetVersion>();
+
+        // get latest version(s) for all packages
+        if (_nugetVersionOptions.LoadVersionChecks)
+        {
+            _logger.LogInformation("Fetching latest nuget package versions..");
+            latestPackageVersions =
+                await GetLatestNugetPackageVersionsDictionary(projFiles.SelectMany(p => p.LastQueriedPackages));
+        }
+
+        _projFileResultsRenderer.RenderResults(basePath, _nugetVersionOptions.SearchFilter, projFiles, latestPackageVersions);
 
         if (!string.IsNullOrEmpty(_nugetVersionOptions.SetNewVersionTo))
         {

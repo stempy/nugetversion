@@ -12,3 +12,8 @@
 - Added framework filter -fw [targetframework] - ie `net5.0`
 - Added project references
 - Some code cleanups
+
+1.2.0
+
+- fix: multiple target frameworks crash
+- added: getting latest nuget package version.  can be suppressed with `-supver`
