@@ -84,6 +84,7 @@ public class NugetVersionTool
             ConsoleFileOutput.RedirectConsoleToFile(outputFilePath);
         }
 
+        Console.WriteLine($"Querying {_nugetVersionOptions.BasePath} ...");
 
 
         IDictionary<string, NuGetVersion> latestPackageVersions = new Dictionary<string, NuGetVersion>();

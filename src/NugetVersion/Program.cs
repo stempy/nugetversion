@@ -6,6 +6,7 @@ using NugetVersion.PackageReference;
 using NugetVersion.Utils;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -18,7 +19,6 @@ namespace NugetVersion
             Console.WriteLine($"NugetVersion - v{GetVersion().ToString()}");
             var app = PrepCommandLineApplication();
 
-            // Some fudge to get command line parameters sorted
             var argList = args.ToList();
             if (!argList.Any())
             {
@@ -26,6 +26,7 @@ namespace NugetVersion
                 return;
             }
 
+            // Some fudge to get command line parameters sorted
             if (!argList.First().Trim().StartsWith("-")
                 && !argList.Any(x => x.Trim().Contains("-b")
                                      || x.Trim().Contains("--base")))
@@ -65,7 +66,7 @@ namespace NugetVersion
                 CommandOptionType.SingleValue);
             var optionVersionFilter =
                 app.Option("-v|--version <VERSION>", "Version filter", CommandOptionType.SingleValue);
-            var optionSetVersion = app.Option("-sv|--set-version <VERSION>|latest", "Update versions of query to new version",
+            var optionSetVersion = app.Option("-sv|--set-version <VERSION>", "Update versions of query to new version. can also use latest to use the latest found version",
                 CommandOptionType.SingleValue);
 
             var suppressProjectReferences = app.Option<bool>("-srefs|--suppressrefs", "Suppress Project References",
@@ -90,6 +91,12 @@ namespace NugetVersion
                 var outputFileFormatVal = outputFileFormartOption.HasValue() ? outputFileFormartOption.Value() : null;
                 var suppressRefs = suppressProjectReferences.HasValue() ? suppressProjectReferences.ParsedValue : false;
                 var suppressVersionChecks = suppressLatestVersionChecks.HasValue() ? true : false;
+
+                if (!Path.IsPathFullyQualified(basePathValue))
+                {
+                    basePathValue = Path.GetFullPath(basePathValue, Directory.GetCurrentDirectory());
+                }
+
 
                 var searchQuery = new SearchQueryFilter()
                 {

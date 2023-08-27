@@ -18,7 +18,7 @@ namespace NugetVersion.GetNugetVersions
     {
         private static ConcurrentDictionary<string, NuGetVersion> _nugetVersionLatest = new();
         private readonly Microsoft.Extensions.Logging.ILogger _logger;
-        private TimeSpan _cacheTimeSpan = TimeSpan.FromMinutes(20);
+        private TimeSpan _cacheTimeSpan = TimeSpan.FromMinutes(60);
 
 
         public NugetPackageVersionUtil(Microsoft.Extensions.Logging.ILogger logger)
