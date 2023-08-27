@@ -1,11 +1,12 @@
+using NugetVersion.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
-using NugetVersion.Models;
 
 namespace NugetVersion.PackageReference
 {
@@ -15,10 +16,10 @@ namespace NugetVersion.PackageReference
 
         public XmlPackageReferenceUpdater()
         {
-            
+
         }
-        
-        public IEnumerable<VersionUpdateResult> UpdateVersion(string projectFile, string nameFilter, string versionFilter, 
+
+        public async Task<IEnumerable<VersionUpdateResult>> UpdateVersion(string projectFile, string nameFilter, string versionFilter,
             string newVersion)
         {
             var doc = XDocument.Parse(File.ReadAllText(projectFile));
@@ -40,7 +41,7 @@ namespace NugetVersion.PackageReference
             return updResults;
         }
 
-        
+
         private IEnumerable<XElement> SetPackageVersion(IEnumerable<XElement> packageRefEl,
             string newVersion,
             out IEnumerable<VersionUpdateResult> updateResults)
@@ -89,7 +90,7 @@ namespace NugetVersion.PackageReference
             };
         }
 
-        
+
 
         private void Log(string msg)
         {

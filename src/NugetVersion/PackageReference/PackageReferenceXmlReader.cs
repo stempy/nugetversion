@@ -1,9 +1,9 @@
+using NugetVersion.Models;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
-using NugetVersion.Models;
 
 namespace NugetVersion.PackageReference
 {
@@ -23,7 +23,9 @@ namespace NugetVersion.PackageReference
             _xdoc = xdoc;
         }
 
-        public IEnumerable<XElement> GetPackageReferenceElements(string nameFilter, string versionFilter)
+        public IEnumerable<XElement> GetPackageReferenceElements(
+                                                string nameFilter,
+                                                string versionFilter)
         {
             var pr = GetXDoc().Descendants().Elements("PackageReference");
             if (!string.IsNullOrEmpty(nameFilter) || !string.IsNullOrEmpty(versionFilter))
@@ -42,7 +44,7 @@ namespace NugetVersion.PackageReference
                     _xdoc = XDocument.Parse(File.ReadAllText(_filename));
                 }
             }
-            
+
             return _xdoc;
         }
 
@@ -95,13 +97,13 @@ namespace NugetVersion.PackageReference
                     // wildcard name
                     var regexPattern = WildCardToRegular(attribVal);
                     var r = new Regex(regexPattern, RegexOptions.IgnoreCase);
-                    newList = newList.Where(u => r.IsMatch(u.Attribute(attribName) != null ? 
+                    newList = newList.Where(u => r.IsMatch(u.Attribute(attribName) != null ?
                                                                                     u.Attribute(attribName).Value : ""));
                 }
                 else
                 {
                     // specific name
-                    newList = pr.Where(u => u.Attribute(attribName) != null 
+                    newList = pr.Where(u => u.Attribute(attribName) != null
                                                 && u.Attribute(attribName).Value.Contains(attribVal));
                 }
             }

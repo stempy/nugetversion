@@ -1,11 +1,12 @@
+using NuGet.Versioning;
+using NugetVersion.Models;
+using NugetVersion.Project;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using NugetVersion.Models;
-using NugetVersion.Project;
 
 namespace NugetVersion.Renderer
 {
@@ -19,15 +20,18 @@ namespace NugetVersion.Renderer
         }
 
         public OutputFileFormat Format => OutputFileFormat.Default;
-        
-        
-        public const ConsoleColor ProjectFileNameColor = ConsoleColor.Gray;
+
+
+        public const ConsoleColor ProjectFileNameColor = ConsoleColor.White;
         public const ConsoleColor ProjectInfoColor = ConsoleColor.DarkGray;
 
         public const ConsoleColor TargetFrameworkColor = ConsoleColor.DarkGray;
 
         public const ConsoleColor ProjectPackageNameColor = ConsoleColor.DarkCyan;
         public const ConsoleColor ProjectPackageVersionColor = ConsoleColor.DarkMagenta;
+        public const ConsoleColor ProjectPackageIsLatestVersionColor = ConsoleColor.Green;
+
+        public const ConsoleColor ProjectDeterminedProjectTypeColor = ConsoleColor.DarkCyan;
 
         public const ConsoleColor HighlightWarning = ConsoleColor.Yellow;
         public const ConsoleColor HighlightError = ConsoleColor.Red;
@@ -35,8 +39,9 @@ namespace NugetVersion.Renderer
         public int StartTabPad { get; set; } = 5;
 
 
-        public void RenderResults(string basePath, SearchQueryFilter filter, 
-            IEnumerable<ProjectFile> projFiles)
+        public void RenderResults(string basePath, SearchQueryFilter filter,
+            IEnumerable<ProjectFile> projFiles,
+            IDictionary<string, NuGetVersion> latestPackageVersions)
         {
             var strPad = new string(' ', StartTabPad);
             var maxNameWidth = GetMaxLength(projFiles.SelectMany(x => x.LastQueriedPackages));
@@ -59,7 +64,7 @@ namespace NugetVersion.Renderer
                 if (packages != null)
                 {
                     Render(projectFile);
-                    Render(packages, StartTabPad, maxNameWidth);
+                    Render(packages, StartTabPad, maxNameWidth, latestPackageVersions);
                     if (_nugetOptions.RenderProjectReferences)
                     {
                         var projectRefs = projectFile.GetProjectReferences();
@@ -108,24 +113,42 @@ namespace NugetVersion.Renderer
             }
         }
 
+        private Dictionary<string, string> oldToNewFrameworks = new Dictionary<string, string>()
+        {
+            ["netstandard2."] = "net6.0",
+            ["netcoreapp2."] = "net6.0",
+            ["netcoreapp3."] = "net6.0",
+            ["net5.0"] = "net6.0"
+        };
+
+
+
         public void Render(ProjectFile projectFile)
         {
-            ConsoleRender.W($"\r\n{Path.GetFileName(projectFile.Filename)}\r\n",ProjectFileNameColor);
+            ConsoleRender.W($"\r\n{Path.GetFileName(projectFile.Filename)}\r\n", ProjectFileNameColor);
 
             var targetFrameworkColor = TargetFrameworkColor;
 
             var targetFramework = projectFile.TargetFramework;
-            if (targetFramework == "netstandard2.0")
+            if (targetFramework != null)
             {
-                targetFrameworkColor = HighlightWarning;
-                targetFramework += " (recommend 2.1)";
-            } else if (targetFramework.Contains("netcoreapp3."))
-            {
-                targetFrameworkColor = HighlightWarning;
-                targetFramework += " (3.x is obsolete, .NET 5.x+ or greater)";
+                foreach (var oldToNewFramework in oldToNewFrameworks)
+                {
+                    if (targetFramework.Contains(oldToNewFramework.Key))
+                    {
+                        targetFrameworkColor = HighlightWarning;
+                        targetFramework += $"(obsolete - recommend {oldToNewFramework.Value}+)";
+                    }
+                }
             }
-            
-            ConsoleRender.W($"{targetFramework}",targetFrameworkColor);
+            else if (projectFile.TargetFrameworks != null)
+            {
+                targetFramework = string.Join(';', projectFile.TargetFrameworks);
+            }
+
+            ConsoleRender.W($"{projectFile.DeterminedProjectType}{Environment.NewLine}");
+
+            ConsoleRender.W($"{targetFramework}", targetFrameworkColor);
             if (!string.IsNullOrEmpty(projectFile.OutputType))
             {
                 ConsoleRender.W($" |  OutputType: {projectFile.OutputType}");
@@ -133,9 +156,9 @@ namespace NugetVersion.Renderer
 
             if (!string.IsNullOrEmpty(projectFile.ProjectSdk))
             {
-                ConsoleRender.W($" |  Sdk: {projectFile.ProjectSdk} \r\n", ProjectInfoColor);
+                ConsoleRender.W($" |  Sdk: {projectFile.ProjectSdk}{Environment.NewLine}", ProjectInfoColor);
             }
-            
+
         }
 
         public void Render(IEnumerable<ProjectReferenceModel> items, int startTabPad, int maxNameWidth)
@@ -151,17 +174,47 @@ namespace NugetVersion.Renderer
             }
         }
 
-        public void Render(IEnumerable<PackageReferenceModel> items, int startTabPad, int maxNameWidth)
+        public void Render(IEnumerable<PackageReferenceModel> items, int startTabPad, int maxNameWidth,
+            IDictionary<string, NuGetVersion> latestPackageVersions)
         {
             var tabIdx = startTabPad;
             var tabStr = new string(' ', tabIdx);
             var padRightMax = maxNameWidth + 10;
 
+            bool IsLatestVersion(string currentVer, NuGetVersion latestVersion)
+            {
+                if (latestVersion != null
+                    && !string.IsNullOrEmpty(currentVer)
+                    && !currentVer.Contains("*"))
+                {
+                    var currentVersion = new NuGetVersion(currentVer);
+                    if (currentVersion == latestVersion)
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+
             ConsoleRender.W($"{tabStr}Nuget:\n");
             foreach (var pr in items)
             {
+                var latestVersion = latestPackageVersions.FirstOrDefault(x => x.Key == pr.Name).Value;
+                var isLatestVersion = IsLatestVersion(pr.Version, latestVersion);
+
+                var packageVersionColor =
+                    isLatestVersion ? ProjectPackageIsLatestVersionColor : ProjectPackageVersionColor;
+
                 ConsoleRender.W($"{tabStr}{tabStr}{pr.Name.PadRight(padRightMax)}", ProjectPackageNameColor)
-                    .W($"{pr.Version}\n", ProjectPackageVersionColor);
+                    .W($"{pr.Version}", packageVersionColor);
+
+                if (!isLatestVersion && latestVersion > new NuGetVersion(0, 0, 0))
+                {
+                    ConsoleRender.W($" ({latestVersion})", HighlightWarning);
+                }
+
+                ConsoleRender.W($"{Environment.NewLine}");
             }
         }
     }

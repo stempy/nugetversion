@@ -1,43 +1,48 @@
-﻿using System;
-using System.Diagnostics;
-using System.Linq;
-using McMaster.Extensions.CommandLineUtils;
+﻿using McMaster.Extensions.CommandLineUtils;
+using Microsoft.Extensions.Logging;
+using NugetVersion.GetNugetVersions;
 using NugetVersion.Models;
+using NugetVersion.PackageReference;
 using NugetVersion.Utils;
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace NugetVersion
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             Console.WriteLine($"NugetVersion - v{GetVersion().ToString()}");
             var app = PrepCommandLineApplication();
 
-            // Some fudge to get command line parameters sorted
             var argList = args.ToList();
-
-            if (argList.Any())
-            {
-                if (!argList.First().Trim().StartsWith("-")
-                    && !argList.Any(x => x.Trim().Contains("-b")
-                                         || x.Trim().Contains("--base")))
-                {
-                    var basePath = argList.First();
-                    argList[0] = "-b " + basePath;
-                }
-                else if (argList.Any(x => x.Contains("-")) && argList.First().Trim().StartsWith("-"))
-                {
-                    argList.Insert(0, "-b .");
-                }
-
-                app.Execute(argList.ToArray());
-                ConsoleFileOutput.EndRedirection();
-            }
-            else
+            if (!argList.Any())
             {
                 app.ShowHelp();
+                return;
             }
+
+            // Some fudge to get command line parameters sorted
+            if (!argList.First().Trim().StartsWith("-")
+                && !argList.Any(x => x.Trim().Contains("-b")
+                                     || x.Trim().Contains("--base")))
+            {
+                var basePath = argList.First();
+                argList[0] = "-b " + basePath;
+            }
+            else if (argList.Any(x => x.Contains("-")) && argList.First().Trim().StartsWith("-"))
+            {
+                argList.Insert(0, "-b .");
+            }
+
+            var finalArgs = argList.ToArray();
+
+            await app.ExecuteAsync(finalArgs);
+            ConsoleFileOutput.EndRedirection();
 
             //Console.WriteLine("Completed.");
             if (Debugger.IsAttached)
@@ -61,13 +66,21 @@ namespace NugetVersion
                 CommandOptionType.SingleValue);
             var optionVersionFilter =
                 app.Option("-v|--version <VERSION>", "Version filter", CommandOptionType.SingleValue);
-            var optionSetVersion = app.Option("-sv|--set-version <VERSION>", "Update versions of query to new version",
+            var optionSetVersion = app.Option("-sv|--set-version <VERSION>", "Update versions of query to new version. can also use latest to use the latest found version",
                 CommandOptionType.SingleValue);
 
             var suppressProjectReferences = app.Option<bool>("-srefs|--suppressrefs", "Suppress Project References",
                 CommandOptionType.NoValue);
 
-            app.OnExecute(() =>
+            var suppressLatestVersionChecks = app.Option<bool>("-supver|--suppress-version-checks",
+                "Suppress remote version checks", CommandOptionType.NoValue);
+
+
+            var loggerFactory = LoggerFactory.Create(builder =>
+                builder.AddConsole()
+                    .AddFilter("NugetVersion.GetNugetVersions.NugetPackageVersionUtil", LogLevel.Warning));
+
+            app.OnExecuteAsync(async ct =>
             {
                 var basePathValue = basePathOption.HasValue() ? basePathOption.Value() : null;
                 var fwFilter = optionTargetFrameworkFilter.HasValue() ? optionTargetFrameworkFilter.Value() : null;
@@ -77,6 +90,13 @@ namespace NugetVersion
                 var outputFileOption = outputFile.HasValue() ? outputFile.Value() : null;
                 var outputFileFormatVal = outputFileFormartOption.HasValue() ? outputFileFormartOption.Value() : null;
                 var suppressRefs = suppressProjectReferences.HasValue() ? suppressProjectReferences.ParsedValue : false;
+                var suppressVersionChecks = suppressLatestVersionChecks.HasValue() ? true : false;
+
+                if (!Path.IsPathFullyQualified(basePathValue))
+                {
+                    basePathValue = Path.GetFullPath(basePathValue, Directory.GetCurrentDirectory());
+                }
+
 
                 var searchQuery = new SearchQueryFilter()
                 {
@@ -94,11 +114,27 @@ namespace NugetVersion
                     OutputFile = outputFileOption,
                     OutputFileFormat = outputFileFormatVal,
                     RenderProjectReferences = !suppressRefs,
+                    LoadVersionChecks = !suppressVersionChecks,
                     SetNewVersionTo = setVersion
                 };
 
-                var nugetTool = new NugetVersionTool(nugetVersionOptions);
-                nugetTool.Execute();
+                //_projectNugetVersionUpdater = new ProjectNugetVersionUpdater(new DotNetPackageReferenceUpdater(nugetVersionUtil));
+
+                var packageVersionUtil =
+                    new NugetPackageVersionUtil(loggerFactory.CreateLogger<NugetPackageVersionUtil>());
+                IPackageReferenceUpdater packageReferenceUpdater = new DotNetPackageReferenceUpdater(packageVersionUtil,
+                    loggerFactory.CreateLogger<DotNetPackageReferenceUpdater>());
+
+                var nugetTool = new NugetVersionTool(nugetVersionOptions, packageVersionUtil, packageReferenceUpdater, loggerFactory.CreateLogger<NugetVersionTool>());
+                await nugetTool.ExecuteAsync();
+
+                if (Debugger.IsAttached)
+                {
+                    Console.Write("Press [ENTER] to continue");
+                    Console.ReadLine();
+                }
+
+
             });
             return app;
         }

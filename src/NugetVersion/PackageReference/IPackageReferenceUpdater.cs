@@ -1,11 +1,12 @@
-using System.Collections.Generic;
 using NugetVersion.Models;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace NugetVersion.PackageReference
 {
     public interface IPackageReferenceUpdater
     {
-        IEnumerable<VersionUpdateResult> UpdateVersion(string projectFile, 
+        Task<IEnumerable<VersionUpdateResult>> UpdateVersion(string projectFile,
             string nameFilter, string versionFilter, string newVersion);
     }
 }

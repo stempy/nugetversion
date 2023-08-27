@@ -1,9 +1,10 @@
+using NugetVersion.Models;
+using NugetVersion.Renderer;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using NugetVersion.Models;
-using NugetVersion.Renderer;
+using System.Threading.Tasks;
 
 namespace NugetVersion.Project
 {
@@ -16,7 +17,11 @@ namespace NugetVersion.Project
 
             if (!string.IsNullOrEmpty(filter.TargetFramework))
             {
-                projFiles = projFiles.Where(x => x.TargetFramework == filter.TargetFramework);
+                projFiles = projFiles
+                    .Where(x => !string.IsNullOrEmpty(x.TargetFramework)
+                                && x.TargetFramework.Equals(filter.TargetFramework, StringComparison.InvariantCultureIgnoreCase)
+                                || x.TargetFrameworks != null
+                                && x.TargetFrameworks.Contains(filter.TargetFramework));
             }
 
             projFiles = projFiles.Where(x => x.QueryPackages().Any()).ToList();
@@ -24,12 +29,12 @@ namespace NugetVersion.Project
         }
 
 
-        public bool SetNugetPackageVersions(SearchQueryFilter filter, string setVersion,
+        public async Task<bool> SetNugetPackageVersions(SearchQueryFilter filter, string setVersion,
             IEnumerable<ProjectFile> projFiles, string strPad, ProjectNugetVersionUpdater tools)
         {
             var nameFilter = filter.Name;
             var versionFilter = filter.Version;
-            
+
             var numProjectFiles = projFiles.Count();
             if (numProjectFiles < 1)
             {
@@ -47,7 +52,7 @@ namespace NugetVersion.Project
                 return true;
 
             // update versions
-            tools.UpdateVersionInProjects(projFiles, nameFilter, versionFilter, setVersion, true);
+            await tools.UpdateVersionInProjects(projFiles, nameFilter, versionFilter, setVersion, true);
 
             ConsoleRender.W($"Updated {numProjectFiles} projects with packages to version {setVersion}");
             return false;

@@ -14,4 +14,9 @@ public class NugetVersionOptions
     public string OutputFileFormat { get; set; }
 
     public bool RenderProjectReferences { get; set; } = true;
+
+    /// <summary>
+    /// Load remote version checks
+    /// </summary>
+    public bool LoadVersionChecks { get; set; }
 }

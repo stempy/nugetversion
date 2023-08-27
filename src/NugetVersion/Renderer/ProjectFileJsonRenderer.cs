@@ -1,9 +1,10 @@
+using NuGet.Versioning;
+using NugetVersion.Models;
+using NugetVersion.Project;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using NugetVersion.Models;
-using NugetVersion.Project;
 
 namespace NugetVersion.Renderer
 {
@@ -18,16 +19,17 @@ namespace NugetVersion.Renderer
             WriteIndented = true
         };
 
-        public void RenderResults(string basePath, SearchQueryFilter filter, IEnumerable<ProjectFile> projFiles)
+        public void RenderResults(string basePath, SearchQueryFilter filter, IEnumerable<ProjectFile> projFiles,
+            IDictionary<string, NuGetVersion> latestPackageVersions)
         {
-            var outPutModel = projFiles.Select(x => new 
+            var outPutModel = projFiles.Select(x => new
             {
-                ProjectFile = x.Filename.Replace(basePath+@"\",""),
+                ProjectFile = x.Filename.Replace(basePath + @"\", ""),
                 Version = x.Version,
                 OutputType = x.OutputType,
                 Sdk = x.ProjectSdk,
                 TargetFramework = x.TargetFramework,
-                ProjectReferences = x.GetProjectReferences()?.Select(p=>p.Include),
+                ProjectReferences = x.GetProjectReferences()?.Select(p => p.Include),
                 PackageReferences = x.LastQueriedPackages,
             });
 
