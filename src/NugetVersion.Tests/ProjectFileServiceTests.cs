@@ -1,6 +1,6 @@
-using System.Linq;
 using NugetVersion.Models;
 using NugetVersion.Project;
+using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -16,14 +16,15 @@ namespace NugetVersion.Tests
         }
 
         [Theory]
-        [InlineData("net5.0",1)]
+        [InlineData("net5.0", 2)]
         [InlineData("netcoreapp3.1", 2)]
+        [InlineData("netstandard2.0", 1)]
         public void test_framework_filter(string netFramework, int projectCount)
         {
             var query = new SearchQueryFilter() { TargetFramework = netFramework };
 
             var queryResults = _projectFileService.GetProjectFilesByFilter(
-                GetSamplesDir(), 
+                GetSamplesDir(),
                 query, "*-csproj.xml");
 
             Assert.Equal(projectCount, queryResults.Count());

@@ -1,9 +1,9 @@
+using NugetVersion.Models;
+using NugetVersion.Renderer;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using NugetVersion.Models;
-using NugetVersion.Renderer;
 
 namespace NugetVersion.Project
 {
@@ -16,7 +16,11 @@ namespace NugetVersion.Project
 
             if (!string.IsNullOrEmpty(filter.TargetFramework))
             {
-                projFiles = projFiles.Where(x => x.TargetFramework == filter.TargetFramework);
+                projFiles = projFiles
+                    .Where(x => !string.IsNullOrEmpty(x.TargetFramework)
+                                && x.TargetFramework.Equals(filter.TargetFramework, StringComparison.InvariantCultureIgnoreCase)
+                                || x.TargetFrameworks != null
+                                && x.TargetFrameworks.Contains(filter.TargetFramework));
             }
 
             projFiles = projFiles.Where(x => x.QueryPackages().Any()).ToList();
@@ -29,7 +33,7 @@ namespace NugetVersion.Project
         {
             var nameFilter = filter.Name;
             var versionFilter = filter.Version;
-            
+
             var numProjectFiles = projFiles.Count();
             if (numProjectFiles < 1)
             {
