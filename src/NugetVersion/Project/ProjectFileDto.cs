@@ -20,5 +20,8 @@ namespace NugetVersion.Project
         public string PackAsTool { get; set; }
         public string AssemblyVersion { get; set; }
         public string FileVersion { get; set; }
+
+        public string AzureFunctionsVersion { get; set; }
+        public NetProjectType DeterminedProjectType { get; set; }
     }
 }

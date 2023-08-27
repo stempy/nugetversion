@@ -44,6 +44,7 @@ namespace NugetVersion.Project
             PackAsTool = projInfo.PackAsTool;
             OutputType = projInfo.OutputType;
             Version = projInfo.Version;
+            DeterminedProjectType = projInfo.DeterminedProjectType;
         }
 
         private XDocument GetXDoc()

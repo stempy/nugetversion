@@ -23,6 +23,9 @@ public class NugetVersionTool
     private readonly NugetPackageVersionUtil _nugetVersionUtil;
     private readonly ILogger<NugetVersionTool> _logger;
 
+    private const int CHUNK_SIZE = 15;
+
+
     public NugetVersionTool(NugetVersionOptions nugetVersionOptions,
                             NugetPackageVersionUtil nugetVersionUtil,
                             IPackageReferenceUpdater packageReferenceUpdater,
@@ -41,19 +44,30 @@ public class NugetVersionTool
     {
         // get latest version(s) for all packages
         var latestPackageVersions = new Dictionary<string, NuGetVersion>();
-        foreach (var packageReferenceModel in packages)
+
+        async Task ProcessPackageIdFetch(string packageId)
         {
-            var packageName = packageReferenceModel.Name;
             // fetch latest
-            if (!latestPackageVersions.ContainsKey(packageName))
+            if (!latestPackageVersions.ContainsKey(packageId))
             {
-                var latestVersion = await _nugetVersionUtil.GetLatestNugetPackageVersionAsync(packageName);
+                var latestVersion = await _nugetVersionUtil.GetLatestNugetPackageVersionAsync(packageId);
                 if (latestVersion != null)
                 {
-                    latestPackageVersions[packageName] = latestVersion;
+                    latestPackageVersions[packageId] = latestVersion;
                 }
             }
         }
+
+        var packageIdArrs = packages.Select(x => x.Name).Distinct();
+
+
+        foreach (var chunk in packageIdArrs.Chunk(CHUNK_SIZE))
+        {
+            Console.Write(".");
+            await Task.WhenAll(chunk.Select(x => ProcessPackageIdFetch(x)));
+        }
+
+        Console.WriteLine();
         return latestPackageVersions;
     }
 

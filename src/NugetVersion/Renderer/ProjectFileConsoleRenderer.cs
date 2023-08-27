@@ -22,13 +22,16 @@ namespace NugetVersion.Renderer
         public OutputFileFormat Format => OutputFileFormat.Default;
 
 
-        public const ConsoleColor ProjectFileNameColor = ConsoleColor.Gray;
+        public const ConsoleColor ProjectFileNameColor = ConsoleColor.White;
         public const ConsoleColor ProjectInfoColor = ConsoleColor.DarkGray;
 
         public const ConsoleColor TargetFrameworkColor = ConsoleColor.DarkGray;
 
         public const ConsoleColor ProjectPackageNameColor = ConsoleColor.DarkCyan;
         public const ConsoleColor ProjectPackageVersionColor = ConsoleColor.DarkMagenta;
+        public const ConsoleColor ProjectPackageIsLatestVersionColor = ConsoleColor.Green;
+
+        public const ConsoleColor ProjectDeterminedProjectTypeColor = ConsoleColor.DarkCyan;
 
         public const ConsoleColor HighlightWarning = ConsoleColor.Yellow;
         public const ConsoleColor HighlightError = ConsoleColor.Red;
@@ -143,6 +146,7 @@ namespace NugetVersion.Renderer
                 targetFramework = string.Join(';', projectFile.TargetFrameworks);
             }
 
+            ConsoleRender.W($"{projectFile.DeterminedProjectType}{Environment.NewLine}");
 
             ConsoleRender.W($"{targetFramework}", targetFrameworkColor);
             if (!string.IsNullOrEmpty(projectFile.OutputType))
@@ -152,7 +156,7 @@ namespace NugetVersion.Renderer
 
             if (!string.IsNullOrEmpty(projectFile.ProjectSdk))
             {
-                ConsoleRender.W($" |  Sdk: {projectFile.ProjectSdk} \r\n", ProjectInfoColor);
+                ConsoleRender.W($" |  Sdk: {projectFile.ProjectSdk}{Environment.NewLine}", ProjectInfoColor);
             }
 
         }
@@ -177,23 +181,37 @@ namespace NugetVersion.Renderer
             var tabStr = new string(' ', tabIdx);
             var padRightMax = maxNameWidth + 10;
 
+            bool IsLatestVersion(string currentVer, NuGetVersion latestVersion)
+            {
+                if (latestVersion != null
+                    && !string.IsNullOrEmpty(currentVer)
+                    && !currentVer.Contains("*"))
+                {
+                    var currentVersion = new NuGetVersion(currentVer);
+                    if (currentVersion == latestVersion)
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+
             ConsoleRender.W($"{tabStr}Nuget:\n");
             foreach (var pr in items)
             {
                 var latestVersion = latestPackageVersions.FirstOrDefault(x => x.Key == pr.Name).Value;
+                var isLatestVersion = IsLatestVersion(pr.Version, latestVersion);
+
+                var packageVersionColor =
+                    isLatestVersion ? ProjectPackageIsLatestVersionColor : ProjectPackageVersionColor;
 
                 ConsoleRender.W($"{tabStr}{tabStr}{pr.Name.PadRight(padRightMax)}", ProjectPackageNameColor)
-                    .W($"{pr.Version}", ProjectPackageVersionColor);
+                    .W($"{pr.Version}", packageVersionColor);
 
-                if (latestVersion != null
-                    && !string.IsNullOrEmpty(pr.Version)
-                    && !pr.Version.Contains("*"))
+                if (!isLatestVersion && latestVersion > new NuGetVersion(0, 0, 0))
                 {
-                    var currentVer = new NuGetVersion(pr.Version);
-                    if (currentVer < latestVersion)
-                    {
-                        ConsoleRender.W($" ({latestVersion})", HighlightWarning);
-                    }
+                    ConsoleRender.W($" ({latestVersion})", HighlightWarning);
                 }
 
                 ConsoleRender.W($"{Environment.NewLine}");
