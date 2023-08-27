@@ -41,7 +41,7 @@ namespace NugetVersion.GetNugetVersions
             }
 
             var file = Path.Combine(cachePath, $"{packageId}.json");
-            var content = version.ToFullString();
+            var content = version?.ToFullString();
             File.WriteAllText(file, content);
             return file;
         }
@@ -62,6 +62,14 @@ namespace NugetVersion.GetNugetVersions
             }
 
             var fullVersionString = File.ReadAllText(file);
+
+            // ok if version string is empty.... lets set it to 0.0.0.0 which means we have checked remote server for it (ie not null)
+            // but no actual result found, but we dont want to fetch from server again soon, as it uses a request.
+            if (string.IsNullOrWhiteSpace(fullVersionString))
+            {
+                return new NuGetVersion(0, 0, 0);
+            }
+
             var model = new NuGetVersion(fullVersionString);
             return model;
         }
@@ -81,11 +89,8 @@ namespace NugetVersion.GetNugetVersions
                         version = versions.OrderByDescending(x => x.Version)
                             .FirstOrDefault(x => !x.IsPrerelease);
 
-                        if (version != null)
-                        {
-                            // 3. save to cache
-                            SaveNugetVersionCache(packageId, version);
-                        }
+                        // 3. save to cache, null or otherwise, null so we don't try fetch remote again
+                        SaveNugetVersionCache(packageId, version);
                     }
 
                     _nugetVersionLatest.AddOrUpdate(packageId, version, (key, oldValue) => version);

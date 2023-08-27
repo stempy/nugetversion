@@ -184,7 +184,9 @@ namespace NugetVersion.Renderer
                 ConsoleRender.W($"{tabStr}{tabStr}{pr.Name.PadRight(padRightMax)}", ProjectPackageNameColor)
                     .W($"{pr.Version}", ProjectPackageVersionColor);
 
-                if (latestVersion != null)
+                if (latestVersion != null
+                    && !string.IsNullOrEmpty(pr.Version)
+                    && !pr.Version.Contains("*"))
                 {
                     var currentVer = new NuGetVersion(pr.Version);
                     if (currentVer < latestVersion)
