@@ -31,14 +31,17 @@ jobs:
 
     - name: Install dependencies
       run: dotnet restore
+      working-directory: ./src
     - name: Build
       run: dotnet build --configuration Release --no-restore -p:Version=${{ steps.gitversion.outputs.fullSemVer }}
+      working-directory: ./src
     - name: Test
       run: dotnet test --no-restore --logger trx --results-directory TestResults
+      working-directory: ./src
     - name: Upload dotnet test results
       uses: actions/upload-artifact@v3
       with:
         name: dotnet-results
-        path: TestResults
+        path: ./src/TestResults
         # Use always() to always run this step to publish test results when there are test failures
       if: ${{ always() }}
