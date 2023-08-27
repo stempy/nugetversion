@@ -8,10 +8,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NugetVersion.Tests", "NugetVersion.Tests\NugetVersion.Tests.csproj", "{49A21283-50E7-4670-9A95-5FEA75B792D6}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{71B0A2A8-2A09-4648-B2A2-ABE0CC4A3F91}"
-	ProjectSection(SolutionItems) = preProject
-		readme.md = readme.md
-		releases.md = releases.md
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
