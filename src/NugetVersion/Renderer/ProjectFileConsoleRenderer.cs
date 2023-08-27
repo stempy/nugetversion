@@ -1,11 +1,11 @@
+using NugetVersion.Models;
+using NugetVersion.Project;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using NugetVersion.Models;
-using NugetVersion.Project;
 
 namespace NugetVersion.Renderer
 {
@@ -19,8 +19,8 @@ namespace NugetVersion.Renderer
         }
 
         public OutputFileFormat Format => OutputFileFormat.Default;
-        
-        
+
+
         public const ConsoleColor ProjectFileNameColor = ConsoleColor.Gray;
         public const ConsoleColor ProjectInfoColor = ConsoleColor.DarkGray;
 
@@ -35,7 +35,7 @@ namespace NugetVersion.Renderer
         public int StartTabPad { get; set; } = 5;
 
 
-        public void RenderResults(string basePath, SearchQueryFilter filter, 
+        public void RenderResults(string basePath, SearchQueryFilter filter,
             IEnumerable<ProjectFile> projFiles)
         {
             var strPad = new string(' ', StartTabPad);
@@ -108,24 +108,38 @@ namespace NugetVersion.Renderer
             }
         }
 
+        private Dictionary<string, string> oldToNewFrameworks = new Dictionary<string, string>()
+        {
+            ["netstandard2.0"] = "net6.0",
+            ["netcoreapp2."] = "net6.0",
+            ["netcoreapp3."] = "net6.0",
+        };
+
         public void Render(ProjectFile projectFile)
         {
-            ConsoleRender.W($"\r\n{Path.GetFileName(projectFile.Filename)}\r\n",ProjectFileNameColor);
+            ConsoleRender.W($"\r\n{Path.GetFileName(projectFile.Filename)}\r\n", ProjectFileNameColor);
 
             var targetFrameworkColor = TargetFrameworkColor;
 
             var targetFramework = projectFile.TargetFramework;
-            if (targetFramework == "netstandard2.0")
+            if (targetFramework != null)
             {
-                targetFrameworkColor = HighlightWarning;
-                targetFramework += " (recommend 2.1)";
-            } else if (targetFramework.Contains("netcoreapp3."))
-            {
-                targetFrameworkColor = HighlightWarning;
-                targetFramework += " (3.x is obsolete, .NET 5.x+ or greater)";
+                foreach (var oldToNewFramework in oldToNewFrameworks)
+                {
+                    if (targetFramework.Contains(oldToNewFramework.Key))
+                    {
+                        targetFrameworkColor = HighlightWarning;
+                        targetFramework += $"(obsolete - recommend {oldToNewFramework.Value}+)";
+                    }
+                }
             }
-            
-            ConsoleRender.W($"{targetFramework}",targetFrameworkColor);
+            else if (projectFile.TargetFrameworks != null)
+            {
+                targetFramework = string.Join(';', projectFile.TargetFrameworks);
+            }
+
+
+            ConsoleRender.W($"{targetFramework}", targetFrameworkColor);
             if (!string.IsNullOrEmpty(projectFile.OutputType))
             {
                 ConsoleRender.W($" |  OutputType: {projectFile.OutputType}");
@@ -135,7 +149,7 @@ namespace NugetVersion.Renderer
             {
                 ConsoleRender.W($" |  Sdk: {projectFile.ProjectSdk} \r\n", ProjectInfoColor);
             }
-            
+
         }
 
         public void Render(IEnumerable<ProjectReferenceModel> items, int startTabPad, int maxNameWidth)

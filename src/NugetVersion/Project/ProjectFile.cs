@@ -1,11 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Xml.Linq;
-using NugetVersion.Extensions;
 using NugetVersion.Models;
 using NugetVersion.PackageReference;
+using System.Collections.Generic;
+using System.IO;
+using System.Xml.Linq;
 
 namespace NugetVersion.Project
 {
@@ -32,49 +29,34 @@ namespace NugetVersion.Project
             _nameFilter = filter.Name;
             _versionFilter = filter.Version;
 
-            ReadProjectInfo();
+            LoadProjectFileData();
+        }
+
+        private void LoadProjectFileData()
+        {
+            var projInfo = ProjectFileReader.ReadProjectInfo(_filename);
+            AssemblyVersion = projInfo.AssemblyVersion;
+            TargetFramework = projInfo.TargetFramework;
+            TargetFrameworks = projInfo.TargetFrameworks;
+            Description = projInfo.Description;
+            FileVersion = projInfo.FileVersion;
+            IsPackable = projInfo.IsPackable;
+            PackAsTool = projInfo.PackAsTool;
+            OutputType = projInfo.OutputType;
+            Version = projInfo.Version;
         }
 
         private XDocument GetXDoc()
         {
             if (!File.Exists(_filename))
                 throw new FileNotFoundException(_filename);
-            
+
             return XDocument.Parse(File.ReadAllText(_filename));
-        }
-
-        private void ReadProjectInfo()
-        {
-            try
-            {
-                var doc = GetXDoc();
-
-                var projElk = doc.Elements("Project").FirstOrDefault();
-                if (projElk != null)
-                {
-                    ProjectSdk = projElk.GetXElementAttributeValueOrNull("Sdk");
-                }
-
-                var propGroup = doc.Descendants("PropertyGroup").Elements();
-                TargetFramework = propGroup.FindElementKeyValueOrNull("TargetFramework");
-                AssemblyVersion = propGroup.FindElementKeyValueOrNull("AssemblyVersion");
-                FileVersion = propGroup.FindElementKeyValueOrNull("FileVersion");
-                Description = propGroup.FindElementKeyValueOrNull("Description");
-                Version = propGroup.FindElementKeyValueOrNull("Version");
-                IsPackable = propGroup.FindElementKeyValueOrNull("IsPackable");
-                PackAsTool = propGroup.FindElementKeyValueOrNull("PackAsTool");
-                OutputType = propGroup.FindElementKeyValueOrNull("OutputType");
-
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Unable to parse {_filename}",ex);
-            }
         }
 
         public IEnumerable<PackageReferenceModel> QueryPackages()
         {
-            LastQueriedPackages ??= 
+            LastQueriedPackages ??=
                         _mapper.Map(new PackageReferenceXmlReader(GetXDoc()).GetPackageReferenceElements(_nameFilter, _versionFilter));
 
             PackageReferences = LastQueriedPackages;

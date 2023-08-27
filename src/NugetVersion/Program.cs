@@ -1,9 +1,9 @@
-﻿using System;
-using System.Diagnostics;
-using System.Linq;
-using McMaster.Extensions.CommandLineUtils;
+﻿using McMaster.Extensions.CommandLineUtils;
 using NugetVersion.Models;
 using NugetVersion.Utils;
+using System;
+using System.Diagnostics;
+using System.Linq;
 
 namespace NugetVersion
 {
@@ -99,6 +99,14 @@ namespace NugetVersion
 
                 var nugetTool = new NugetVersionTool(nugetVersionOptions);
                 nugetTool.Execute();
+
+                if (Debugger.IsAttached)
+                {
+                    Console.Write("Press [ENTER] to continue");
+                    Console.ReadLine();
+                }
+
+
             });
             return app;
         }

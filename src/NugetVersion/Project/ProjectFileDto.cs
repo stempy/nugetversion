@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using NugetVersion.Models;
+using System.Collections.Generic;
 
 namespace NugetVersion.Project
 {
@@ -11,6 +11,7 @@ namespace NugetVersion.Project
         public IEnumerable<PackageReferenceModel> PackageReferences { get; set; }
 
         public string TargetFramework { get; set; }
+        public IEnumerable<string> TargetFrameworks { get; set; }
         public string Version { get; set; }
         public string Description { get; set; }
         public string ProjectSdk { get; set; }
